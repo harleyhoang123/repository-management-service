@@ -29,5 +29,5 @@ public class GetRepositoryDetailResponse extends AuditableResponse implements Se
     private String repositoryId;
     private String repositoryName;
     private String description;
-    private List<GetFolderResponse> folderResponses;
+    private List<GetFolderResponse> listFolderResponse;
 }

@@ -27,4 +27,5 @@ public class GetRepositoryResponse extends AuditableResponse implements Serializ
     private String repositoryId;
     private String repositoryName;
     private String description;
+
 }

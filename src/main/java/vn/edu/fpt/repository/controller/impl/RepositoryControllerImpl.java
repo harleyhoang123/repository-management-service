@@ -8,6 +8,7 @@ import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.controller.RepositoryController;
 import vn.edu.fpt.repository.dto.common.GeneralResponse;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
+import vn.edu.fpt.repository.dto.common.SortableRequest;
 import vn.edu.fpt.repository.dto.request.folder.CreateFolderRequest;
 import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
@@ -19,6 +20,10 @@ import vn.edu.fpt.repository.dto.response.repository.GetRepositoryResponse;
 import vn.edu.fpt.repository.factory.ResponseFactory;
 import vn.edu.fpt.repository.service.FolderService;
 import vn.edu.fpt.repository.service.RepositoryService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : Hoang Lam
@@ -59,12 +64,46 @@ public class RepositoryControllerImpl implements RepositoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetRepositoryResponse>>> getRepository() {
-        return null;
-    }
+    public ResponseEntity<GeneralResponse<PageableResponse<GetRepositoryResponse>>> getRepository(String repositoryId,
+                                                                                                  String repositoryName,
+                                                                                                  String repositoryNameSortBy,
+                                                                                                  String description,
+                                                                                                  String createdBy,
+                                                                                                  String createdDateFrom,
+                                                                                                  String createdDateTo,
+                                                                                                  String createdDateSortBy,
+                                                                                                  String lastModifiedBy,
+                                                                                                  String lastModifiedDateFrom,
+                                                                                                  String lastModifiedDateTo,
+                                                                                                  String lastModifiedDateSortBy,
+                                                                                                  Integer page,
+                                                                                                  Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if(Objects.nonNull(repositoryNameSortBy)){
+            sortableRequests.add(new SortableRequest("repository_name", repositoryNameSortBy));
+        }
+        if(Objects.nonNull(createdDateSortBy)){
+            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
+        }
+        if(Objects.nonNull(lastModifiedDateSortBy)){
+            sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
+        }
 
-    @Override
-    public ResponseEntity<GeneralResponse<GetRepositoryDetailResponse>> getRepositoryDetail(String repositoryId) {
-        return null;
+        GetRepositoryRequest request = GetRepositoryRequest.builder()
+                .repositoryId(repositoryId)
+                .repositoryName(repositoryName)
+                .description(description)
+                .createdBy(createdBy)
+                .createdDateFrom(createdDateFrom)
+                .createdDateTo(createdDateTo)
+                .lastModifiedBy(lastModifiedBy)
+                .lastModifiedDateFrom(lastModifiedDateFrom)
+                .lastModifiedDateTo(lastModifiedDateTo)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+
+        return responseFactory.response(repositoryService.getRepository(request));
     }
 }

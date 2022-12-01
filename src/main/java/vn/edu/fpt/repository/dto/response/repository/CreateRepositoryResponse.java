@@ -21,5 +21,5 @@ import java.io.Serializable;
 public class CreateRepositoryResponse implements Serializable {
 
     private static final long serialVersionUID = 5670721301375859825L;
-    private String folderId;
+    private String repositoryId;
 }

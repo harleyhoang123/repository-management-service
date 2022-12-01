@@ -42,6 +42,6 @@ public class FileControllerImpl implements FileController {
 
     @Override
     public ResponseEntity<GeneralResponse<GetFileDetailResponse>> getFileDetail(String fileId) {
-        return null;
+        return  responseFactory.response(fileService.getFileDetail(fileId), ResponseStatusEnum.SUCCESS);
     }
 }

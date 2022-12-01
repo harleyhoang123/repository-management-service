@@ -34,6 +34,8 @@ public class _Repository extends Auditor {
     private String repositoryId;
     @Field(name = "project_id")
     private String projectId;
+    @Field(name = "original_path")
+    private String originalPath;
     @Field(name = "repository_name")
     private String repositoryName;
     @Field(name = "description")

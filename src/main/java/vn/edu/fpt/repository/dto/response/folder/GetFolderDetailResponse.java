@@ -2,6 +2,7 @@ package vn.edu.fpt.repository.dto.response.folder;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -20,10 +21,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@SuperBuilder
+@Builder
 @JsonPropertyOrder({"folderResponses", "fileResponses"})
 public class GetFolderDetailResponse implements Serializable {
     private static final long serialVersionUID = 6789006574100263413L;
-    private List<GetFolderResponse> folderResponses;
-    private List<GetFileDetailResponse> fileResponses;
+    private List<GetFolderResponse> listFolder;
+    private List<GetFileDetailResponse> listFile;
 }

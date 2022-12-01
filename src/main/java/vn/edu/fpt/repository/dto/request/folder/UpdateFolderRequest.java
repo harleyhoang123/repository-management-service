@@ -25,6 +25,4 @@ public class UpdateFolderRequest implements Serializable {
     private String folderName;
     private String description;
 
-
-
 }

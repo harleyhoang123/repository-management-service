@@ -133,10 +133,10 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void deleteFile(String fileId) {
-        folderRepository.findById(fileId)
+        fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
         try {
-            folderRepository.deleteById(fileId);
+            fileRepository.deleteById(fileId);
             log.info("Delete file: {} success", fileId);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete file by ID: " + ex.getMessage());

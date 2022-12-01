@@ -19,6 +19,7 @@ import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
+import vn.edu.fpt.repository.dto.response.folder.GetFolderDetailResponse;
 import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
 import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryDetailResponse;
@@ -61,9 +62,11 @@ public class RepositoryServiceImpl implements RepositoryService {
     @Override
     @Transactional
     public CreateRepositoryResponse createRepository(CreateRepositoryRequest request) {
+        String path = String.format("%s", DataUtils.getFolderKey(request.getRepositoryName()));
         _Repository repository = _Repository.builder()
                 .projectId(request.getProjectId())
                 .repositoryName(request.getRepositoryName())
+                .originalPath(path)
                 .description(request.getDescription())
                 .build();
         try {
@@ -82,7 +85,7 @@ public class RepositoryServiceImpl implements RepositoryService {
             throw new BusinessException("Can't create repository in aws: "+ ex.getMessage());
         }
         return CreateRepositoryResponse.builder()
-                .folderId(repository.getRepositoryId())
+                .repositoryId(repository.getRepositoryId())
                 .build();
     }
 
@@ -130,7 +133,7 @@ public class RepositoryServiceImpl implements RepositoryService {
             query.addCriteria(Criteria.where("_id").is(request.getRepositoryId()));
         }
         if(Objects.nonNull(request.getRepositoryName())){
-            query.addCriteria(Criteria.where("folder_name").regex(request.getRepositoryName()));
+            query.addCriteria(Criteria.where("repository_name").regex(request.getRepositoryName()));
         }
         if(Objects.nonNull(request.getDescription())){
             query.addCriteria(Criteria.where("description").regex(request.getDescription()));
@@ -150,29 +153,10 @@ public class RepositoryServiceImpl implements RepositoryService {
         return new PageableResponse<>(request, totalElements, repositoryResponses);
     }
 
-    @Override
-    public GetRepositoryDetailResponse getRepositoryDetail(String repositoryId) {
-        _Repository repository= repositoryRepository.findById(repositoryId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "repository ID not found"));
-        return GetRepositoryDetailResponse.builder()
-                .repositoryId(repository.getRepositoryId())
-                .repositoryName(repository.getRepositoryName())
-                .description(repository.getDescription())
-                .createdBy(UserInfoResponse.builder()
-                        .accountId(repository.getCreatedBy())
-                        .userInfo(userInfoService.getUserInfo(repository.getCreatedBy()))
-                        .build())
-                .createdDate(repository.getCreatedDate())
-                .lastModifiedBy(UserInfoResponse.builder()
-                        .accountId(repository.getLastModifiedBy())
-                        .userInfo(userInfoService.getUserInfo(repository.getLastModifiedBy()))
-                        .build())
-                .lastModifiedDate(repository.getLastModifiedDate())
-                .build();
-    }
 
     @Override
     public GetRepositoryResponse convertToRepositoryResponse(_Repository repository) {
+
         return GetRepositoryResponse.builder()
                 .repositoryId(repository.getRepositoryId())
                 .repositoryName(repository.getRepositoryName())

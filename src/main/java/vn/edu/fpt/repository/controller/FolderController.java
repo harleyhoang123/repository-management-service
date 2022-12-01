@@ -1,6 +1,5 @@
 package vn.edu.fpt.repository.controller;
 
-import org.apache.http.entity.ContentType;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,10 +32,10 @@ public interface FolderController {
     @PutMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<Object>> updateFolder(@PathVariable(name = "folder-id") String folderId, @RequestBody UpdateFolderRequest request);
 
-    @GetMapping
-    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolder();
+    @GetMapping("/{repository-id}/folders")
+    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable("repository-id") String repositoryId);
 
-    @GetMapping("/{folder-id}")
+    @GetMapping("/{folder-id}/detail")
     ResponseEntity<GeneralResponse<GetFolderDetailResponse>> getFolderDetail(@PathVariable(name = "folder-id") String folderId);
 
     @DeleteMapping("/{folder-id}")

@@ -22,6 +22,6 @@ public interface FileController {
     @DeleteMapping("/{file-id}")
     ResponseEntity<GeneralResponse<Object>> deleteFile(@PathVariable(name = "file-id") String fileId);
 
-    @GetMapping("/{file-id}")
+    @GetMapping("/{file-id}/detail")
     ResponseEntity<GeneralResponse<GetFileDetailResponse>> getFileDetail(@PathVariable(name = "file-id") String fileId);
 }

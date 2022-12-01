@@ -26,7 +26,5 @@ public interface RepositoryService {
 
     PageableResponse<GetRepositoryResponse> getRepository(GetRepositoryRequest request);
 
-    GetRepositoryDetailResponse getRepositoryDetail(String repositoryId);
-
     GetRepositoryResponse convertToRepositoryResponse(_Repository repository);
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
@@ -25,7 +26,6 @@ import vn.edu.fpt.repository.entity.Folder;
 import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.entity._Repository;
 import vn.edu.fpt.repository.exception.BusinessException;
-import vn.edu.fpt.repository.repository.BaseMongoRepository;
 import vn.edu.fpt.repository.repository.FolderRepository;
 import vn.edu.fpt.repository.repository._RepositoryRepository;
 import vn.edu.fpt.repository.service.FolderService;
@@ -65,7 +65,7 @@ public class FolderServiceImpl implements FolderService {
         _Repository repository = repositoryRepository.findById(repositoryId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID not exist"));
 
-        String path = String.format("%s%s", DataUtils.getFolderKey(repository.getRepositoryName()), DataUtils.getFolderKey(request.getFolderName()));
+        String path = String.format("%s%s", DataUtils.getFolderKey(repository.getOriginalPath()), DataUtils.getFolderKey(request.getFolderName()));
 
         Folder folder = Folder.builder()
                 .folderName(request.getFolderName())
@@ -179,46 +179,27 @@ public class FolderServiceImpl implements FolderService {
         }
     }
 
-    @Override
-    public PageableResponse<GetFolderResponse> getFolder(GetFolderRequest request) {
-        Query query = new Query();
-        if(Objects.nonNull(request.getFolderId())){
-            query.addCriteria(Criteria.where("_id").is(request.getFolderId()));
-        }
-        if(Objects.nonNull(request.getFoldName())){
-            query.addCriteria(Criteria.where("folder_name").regex(request.getFoldName()));
-        }
-        if(Objects.nonNull(request.getDescription())){
-            query.addCriteria(Criteria.where("description").regex(request.getDescription()));
-        }
-
-        BaseMongoRepository.addCriteriaWithAuditable(query, request);
-
-        Long totalElements = mongoTemplate.count(query, Folder.class);
-
-        BaseMongoRepository.addCriteriaWithPageable(query, request);
-        BaseMongoRepository.addCriteriaWithSorted(query, request);
-
-        List<Folder> folders = mongoTemplate.find(query, Folder.class);
-
-        List<GetFolderResponse> folderResponses = folders.stream().map(this::convertToFolderResponse).collect(Collectors.toList());
-
-        List<_File> files = mongoTemplate.find(query, _File.class);
-
-        List<GetFileDetailResponse> fileResponses = files.stream().map(this::convertToFileResponse).collect(Collectors.toList());
-        return new PageableResponse<>(request, totalElements, folderResponses);
-    }
 
     @Override
     public GetFolderDetailResponse getFolderDetail(String folderId) {
-
         Folder folder= folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "folder ID not found"));
-
+        List<Folder> folders = folder.getFolders();
+        List<_File> files = folder.getFiles();
         return GetFolderDetailResponse.builder()
+                .listFolder(folders.stream().map(this::convertToFolderResponse).collect(Collectors.toList()))
+                .listFile(files.stream().map(this::convertToFileResponse).collect(Collectors.toList()))
                 .build();
     }
 
+    @Override
+    public PageableResponse<GetFolderResponse> getFolderByRepositoryId(String repositoryId) {
+        _Repository repository = repositoryRepository.findById(repositoryId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID not found"));
+        List<Folder> folders = repository.getFolders();
+        List<GetFolderResponse> folderResponses = folders.stream().map(this::convertToFolderResponse).collect(Collectors.toList());
+        return new PageableResponse<>(folderResponses);
+    }
 
     public GetFolderResponse convertToFolderResponse(Folder folder) {
         return GetFolderResponse.builder()

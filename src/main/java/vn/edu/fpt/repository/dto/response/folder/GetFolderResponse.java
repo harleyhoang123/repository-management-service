@@ -25,4 +25,5 @@ public class GetFolderResponse implements Serializable{
     private static final long serialVersionUID = -7918752112103180312L;
     private String folderId;
     private String folderName;
+    private String description;
 }
