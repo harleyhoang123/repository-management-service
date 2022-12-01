@@ -6,7 +6,6 @@ import org.bson.types.ObjectId;
 import vn.edu.fpt.repository.dto.common.AuditableRequest;
 import vn.edu.fpt.repository.utils.RequestDataUtils;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 

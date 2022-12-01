@@ -52,8 +52,6 @@ public class FolderServiceImpl implements FolderService {
 
     private final AmazonS3 amazonS3;
     private final FolderRepository folderRepository;
-
-    private final FolderService folderService;
     private final _RepositoryRepository repositoryRepository;
 
     private final MongoTemplate mongoTemplate;
