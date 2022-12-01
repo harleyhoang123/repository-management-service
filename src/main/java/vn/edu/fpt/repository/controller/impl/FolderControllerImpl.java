@@ -47,7 +47,8 @@ public class FolderControllerImpl implements FolderController {
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> updateFolder(String folderId, UpdateFolderRequest request) {
-        return null;
+        folderService.updateFolder(folderId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
@@ -62,6 +63,8 @@ public class FolderControllerImpl implements FolderController {
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> deleteFolder(String folderId) {
-        return null;
+        folderService.deleteFolder(folderId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
+
     }
 }

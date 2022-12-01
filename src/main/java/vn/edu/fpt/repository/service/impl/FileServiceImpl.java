@@ -1,34 +1,34 @@
 package vn.edu.fpt.repository.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
-import vn.edu.fpt.repository.dto.common.PageableResponse;
+import vn.edu.fpt.repository.dto.common.UserInfoResponse;
 import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
-import vn.edu.fpt.repository.dto.request.file.GetFileRequest;
 import vn.edu.fpt.repository.dto.request.file.UpdateFileRequest;
 import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
-import vn.edu.fpt.repository.dto.response.file.GetFileResponse;
 import vn.edu.fpt.repository.entity.Folder;
 import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.exception.BusinessException;
-import vn.edu.fpt.repository.factory.ResponseFactory;
 import vn.edu.fpt.repository.repository.FileRepository;
 import vn.edu.fpt.repository.repository.FolderRepository;
 import vn.edu.fpt.repository.service.FileService;
+import vn.edu.fpt.repository.service.UserInfoService;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : Hoang Lam
@@ -45,6 +45,7 @@ public class FileServiceImpl implements FileService {
     private final AmazonS3 amazonS3;
     private final FileRepository fileRepository;
     private final FolderRepository folderRepository;
+    private final UserInfoService userInfoService;
     @Value("${application.bucket}")
     private String bucketName;
 
@@ -69,7 +70,7 @@ public class FileServiceImpl implements FileService {
             try {
                 file = fileRepository.save(file);
             } catch (Exception ex) {
-                throw new BusinessException("");
+                throw new BusinessException("Can't addFileToFolder Cong Son buon");
             }
 
             List<_File> currentFile = folder.getFiles();
@@ -107,21 +108,60 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void updateFile(String fileId, UpdateFileRequest request) {
+        _File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File id not found"));
 
+        if (Objects.nonNull(request.getFileName())) {
+            if (fileRepository.findByFileName(request.getFileName()).isPresent()) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File name already in database");
+            }
+            log.info("Update file name: {}", request.getFileName());
+            file.setFileName(request.getFileName());
+        }
+        if (Objects.nonNull(request.getDescription())) {
+            log.info("Update file description: {}", request.getDescription());
+            file.setDescription(request.getDescription());
+        }
+
+        try {
+            fileRepository.save(file);
+            log.info("Update file success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save file in database when update file: " + ex.getMessage());
+        }
     }
 
     @Override
     public void deleteFile(String fileId) {
-
-    }
-
-    @Override
-    public PageableResponse<GetFileResponse> getFile(GetFileRequest request) {
-        return null;
+        folderRepository.findById(fileId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
+        try {
+            folderRepository.deleteById(fileId);
+            log.info("Delete file: {} success", fileId);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete file by ID: " + ex.getMessage());
+        }
     }
 
     @Override
     public GetFileDetailResponse getFileDetail(String fileId) {
-        return null;
+        _File file= fileRepository.findById(fileId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
+
+        return GetFileDetailResponse.builder()
+                .fileId(file.getFileId())
+                .fileName(file.getFileName())
+                .description(file.getDescription())
+                .createdBy(UserInfoResponse.builder()
+                        .accountId(file.getCreatedBy())
+                        .userInfo(userInfoService.getUserInfo(file.getCreatedBy()))
+                        .build())
+                .createdDate(file.getCreatedDate())
+                .lastModifiedBy(UserInfoResponse.builder()
+                        .accountId(file.getLastModifiedBy())
+                        .userInfo(userInfoService.getUserInfo(file.getLastModifiedBy()))
+                        .build())
+                .lastModifiedDate(file.getLastModifiedDate())
+                .build();
     }
 }

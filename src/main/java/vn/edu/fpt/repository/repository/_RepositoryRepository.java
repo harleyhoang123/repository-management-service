@@ -2,7 +2,10 @@ package vn.edu.fpt.repository.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.entity._Repository;
+
+import java.util.Optional;
 
 /**
  * @author : Hoang Lam
@@ -13,4 +16,5 @@ import vn.edu.fpt.repository.entity._Repository;
  **/
 @Repository
 public interface _RepositoryRepository extends MongoRepository<_Repository, String> {
+    Optional<_Repository> findByRepositoryName(String repoName);
 }

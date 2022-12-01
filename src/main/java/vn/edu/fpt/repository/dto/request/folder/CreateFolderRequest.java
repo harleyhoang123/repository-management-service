@@ -19,7 +19,6 @@ import java.io.Serializable;
 @Data
 @Builder
 public class CreateFolderRequest implements Serializable {
-
     private static final long serialVersionUID = 8940329181413940779L;
     private String folderName;
     private String description;

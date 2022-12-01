@@ -6,23 +6,38 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
+import vn.edu.fpt.repository.dto.common.UserInfoResponse;
 import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
+import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
+import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
 import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryDetailResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryResponse;
+import vn.edu.fpt.repository.entity.Folder;
+import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.entity._Repository;
 import vn.edu.fpt.repository.exception.BusinessException;
+import vn.edu.fpt.repository.repository.BaseMongoRepository;
 import vn.edu.fpt.repository.repository._RepositoryRepository;
 import vn.edu.fpt.repository.service.RepositoryService;
+import vn.edu.fpt.repository.service.UserInfoService;
 import vn.edu.fpt.repository.utils.DataUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author : Hoang Lam
@@ -38,7 +53,8 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     private final _RepositoryRepository repositoryRepository;
     private final AmazonS3 amazonS3;
-
+    private final MongoTemplate mongoTemplate;
+    private final UserInfoService userInfoService;
     @Value("${application.bucket}")
     private String bucketName;
 
@@ -72,21 +88,96 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     @Override
     public void updateRepository(String repositoryId, UpdateRepositoryRequest request) {
+        _Repository repository = repositoryRepository.findById(repositoryId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository id not found"));
 
+        if (Objects.nonNull(request.getRepositoryName())) {
+            if (repositoryRepository.findByRepositoryName(request.getRepositoryName()).isPresent()) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository name already in database");
+            }
+            log.info("Update repository name: {}", request.getRepositoryName());
+            repository.setRepositoryName(request.getRepositoryName());
+        }
+        if (Objects.nonNull(request.getDescription())) {
+            log.info("Update repository description: {}", request.getDescription());
+            repository.setDescription(request.getDescription());
+        }
+
+        try {
+            repositoryRepository.save(repository);
+            log.info("Update repository success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save repository in database when update repository: " + ex.getMessage());
+        }
     }
 
     @Override
     public void deleteRepository(String repositoryId) {
-
+        repositoryRepository.findById(repositoryId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID not found"));
+        try {
+            repositoryRepository.deleteById(repositoryId);
+            log.info("Delete repository: {} success", repositoryId);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete repository by ID: " + ex.getMessage());
+        }
     }
 
     @Override
     public PageableResponse<GetRepositoryResponse> getRepository(GetRepositoryRequest request) {
-        return null;
+        Query query = new Query();
+        if(Objects.nonNull(request.getRepositoryId())){
+            query.addCriteria(Criteria.where("_id").is(request.getRepositoryId()));
+        }
+        if(Objects.nonNull(request.getRepositoryName())){
+            query.addCriteria(Criteria.where("folder_name").regex(request.getRepositoryName()));
+        }
+        if(Objects.nonNull(request.getDescription())){
+            query.addCriteria(Criteria.where("description").regex(request.getDescription()));
+        }
+
+        BaseMongoRepository.addCriteriaWithAuditable(query, request);
+
+        Long totalElements = mongoTemplate.count(query, _Repository.class);
+
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+        BaseMongoRepository.addCriteriaWithSorted(query, request);
+
+        List<_Repository> repositories = mongoTemplate.find(query, _Repository.class);
+
+        List<GetRepositoryResponse> repositoryResponses = repositories.stream().map(this::convertToRepositoryResponse).collect(Collectors.toList());
+
+        return new PageableResponse<>(request, totalElements, repositoryResponses);
     }
 
     @Override
     public GetRepositoryDetailResponse getRepositoryDetail(String repositoryId) {
-        return null;
+        _Repository repository= repositoryRepository.findById(repositoryId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "repository ID not found"));
+        return GetRepositoryDetailResponse.builder()
+                .repositoryId(repository.getRepositoryId())
+                .repositoryName(repository.getRepositoryName())
+                .description(repository.getDescription())
+                .createdBy(UserInfoResponse.builder()
+                        .accountId(repository.getCreatedBy())
+                        .userInfo(userInfoService.getUserInfo(repository.getCreatedBy()))
+                        .build())
+                .createdDate(repository.getCreatedDate())
+                .lastModifiedBy(UserInfoResponse.builder()
+                        .accountId(repository.getLastModifiedBy())
+                        .userInfo(userInfoService.getUserInfo(repository.getLastModifiedBy()))
+                        .build())
+                .lastModifiedDate(repository.getLastModifiedDate())
+                .build();
     }
+
+    @Override
+    public GetRepositoryResponse convertToRepositoryResponse(_Repository repository) {
+        return GetRepositoryResponse.builder()
+                .repositoryId(repository.getRepositoryId())
+                .repositoryName(repository.getRepositoryName())
+                .description(repository.getDescription())
+                .build();
+    }
+
 }
