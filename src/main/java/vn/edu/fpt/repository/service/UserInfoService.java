@@ -1,6 +1,6 @@
 package vn.edu.fpt.repository.service;
 
-import vn.edu.fpt.repository.entity.common.UserInfo;
+import vn.edu.fpt.repository.dto.cache.UserInfo;
 
 /**
  * @author : Hoang Lam
