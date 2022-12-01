@@ -3,10 +3,14 @@ package vn.edu.fpt.repository.entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import vn.edu.fpt.repository.entity.common.Auditor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author : Hoang Lam
@@ -34,4 +38,8 @@ public class _Repository extends Auditor {
     private String repositoryName;
     @Field(name = "description")
     private String description;
+    @Field(name = "folders")
+    @DBRef(lazy = true)
+    @Builder.Default
+    private List<Folder> folders = new ArrayList<>();
 }

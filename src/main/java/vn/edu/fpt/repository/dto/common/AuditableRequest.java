@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.bson.types.ObjectId;
 import vn.edu.fpt.repository.utils.RequestDataUtils;
 
 import java.io.Serializable;
@@ -32,8 +33,8 @@ public abstract class AuditableRequest extends PageableRequest implements Serial
     protected String lastModifiedDateFrom;
     protected String lastModifiedDateTo;
 
-    public String getCreatedBy() {
-        return RequestDataUtils.convertSearchableData(createdBy);
+    public ObjectId getCreatedBy() {
+        return RequestDataUtils.convertObjectId(createdBy);
     }
 
     public LocalDateTime getCreatedDateFrom() {
@@ -44,8 +45,8 @@ public abstract class AuditableRequest extends PageableRequest implements Serial
         return RequestDataUtils.convertDateTo(createdDateTo);
     }
 
-    public String getLastModifiedBy() {
-        return RequestDataUtils.convertSearchableData(lastModifiedBy);
+    public ObjectId getLastModifiedBy() {
+        return RequestDataUtils.convertObjectId(lastModifiedBy);
     }
 
     public LocalDateTime getLastModifiedDateFrom() {

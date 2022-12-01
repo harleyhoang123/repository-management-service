@@ -4,6 +4,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.repository.entity.Folder;
 
+import java.util.Optional;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -13,4 +15,6 @@ import vn.edu.fpt.repository.entity.Folder;
  **/
 @Repository
 public interface FolderRepository extends MongoRepository<Folder, String> {
+    Optional<Folder> findByFolderName(String folderName);
+
 }

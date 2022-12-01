@@ -1,12 +1,9 @@
 package vn.edu.fpt.repository.service;
 
-import vn.edu.fpt.repository.dto.common.PageableResponse;
 import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
-import vn.edu.fpt.repository.dto.request.file.GetFileRequest;
 import vn.edu.fpt.repository.dto.request.file.UpdateFileRequest;
 import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
-import vn.edu.fpt.repository.dto.response.file.GetFileResponse;
 
 /**
  * @author : Hoang Lam
@@ -22,8 +19,6 @@ public interface FileService {
     void updateFile(String fileId, UpdateFileRequest request);
 
     void deleteFile(String fileId);
-
-    PageableResponse<GetFileResponse> getFile(GetFileRequest request);
 
     GetFileDetailResponse getFileDetail(String fileId);
 }

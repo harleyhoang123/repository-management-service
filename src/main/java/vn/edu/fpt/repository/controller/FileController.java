@@ -4,11 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.repository.dto.common.GeneralResponse;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
-import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
 import vn.edu.fpt.repository.dto.request.file.UpdateFileRequest;
-import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
-import vn.edu.fpt.repository.dto.response.file.GetFileResponse;
 
 /**
  * @author : Hoang Lam
@@ -24,9 +21,6 @@ public interface FileController {
 
     @DeleteMapping("/{file-id}")
     ResponseEntity<GeneralResponse<Object>> deleteFile(@PathVariable(name = "file-id") String fileId);
-
-    @GetMapping
-    ResponseEntity<GeneralResponse<PageableResponse<GetFileResponse>>> getFile();
 
     @GetMapping("/{file-id}")
     ResponseEntity<GeneralResponse<GetFileDetailResponse>> getFileDetail(@PathVariable(name = "file-id") String fileId);

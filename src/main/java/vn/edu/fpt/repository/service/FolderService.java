@@ -1,6 +1,5 @@
 package vn.edu.fpt.repository.service;
 
-import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
 import vn.edu.fpt.repository.dto.request.folder.CreateFolderRequest;
 import vn.edu.fpt.repository.dto.request.folder.GetFolderRequest;
@@ -29,4 +28,5 @@ public interface FolderService {
     PageableResponse<GetFolderResponse> getFolder(GetFolderRequest request);
 
     GetFolderDetailResponse getFolderDetail(String folderId);
+
 }

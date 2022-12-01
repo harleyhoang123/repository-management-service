@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.controller.FileController;
 import vn.edu.fpt.repository.dto.common.GeneralResponse;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
-import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
 import vn.edu.fpt.repository.dto.request.file.UpdateFileRequest;
-import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
-import vn.edu.fpt.repository.dto.response.file.GetFileResponse;
 import vn.edu.fpt.repository.factory.ResponseFactory;
 import vn.edu.fpt.repository.service.FileService;
 
@@ -32,17 +30,14 @@ public class FileControllerImpl implements FileController {
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> updateFile(String fileId, UpdateFileRequest request) {
-        return null;
+        fileService.updateFile(fileId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> deleteFile(String fileId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetFileResponse>>> getFile() {
-        return null;
+        fileService.deleteFile(fileId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override

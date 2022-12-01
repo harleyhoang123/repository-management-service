@@ -7,6 +7,7 @@ import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
 import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryDetailResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryResponse;
+import vn.edu.fpt.repository.entity._Repository;
 
 /**
  * @author : Hoang Lam
@@ -26,4 +27,6 @@ public interface RepositoryService {
     PageableResponse<GetRepositoryResponse> getRepository(GetRepositoryRequest request);
 
     GetRepositoryDetailResponse getRepositoryDetail(String repositoryId);
+
+    GetRepositoryResponse convertToRepositoryResponse(_Repository repository);
 }

@@ -4,6 +4,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.repository.entity._File;
 
+import java.util.Optional;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -13,4 +15,6 @@ import vn.edu.fpt.repository.entity._File;
  **/
 @Repository
 public interface FileRepository extends MongoRepository<_File, String> {
+    Optional<_File> findByFileName(String fileName);
+
 }

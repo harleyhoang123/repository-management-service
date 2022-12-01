@@ -1,5 +1,15 @@
 package vn.edu.fpt.repository.dto.response.folder;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
+
+import java.io.Serializable;
+import java.util.List;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -7,5 +17,13 @@ package vn.edu.fpt.repository.dto.response.folder;
  * @created : 29/11/2022 - 15:55
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
-public class GetFolderDetailResponse {
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@SuperBuilder
+@JsonPropertyOrder({"folderResponses", "fileResponses"})
+public class GetFolderDetailResponse implements Serializable {
+    private static final long serialVersionUID = 6789006574100263413L;
+    private List<GetFolderResponse> folderResponses;
+    private List<GetFileDetailResponse> fileResponses;
 }

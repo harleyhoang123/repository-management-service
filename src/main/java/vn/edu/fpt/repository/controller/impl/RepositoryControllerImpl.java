@@ -10,6 +10,7 @@ import vn.edu.fpt.repository.dto.common.GeneralResponse;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
 import vn.edu.fpt.repository.dto.request.folder.CreateFolderRequest;
 import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
+import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
 import vn.edu.fpt.repository.dto.response.folder.CreateFolderResponse;
 import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
@@ -47,12 +48,14 @@ public class RepositoryControllerImpl implements RepositoryController {
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> updateRepository(String repositoryId, UpdateRepositoryRequest request) {
-        return null;
+        repositoryService.updateRepository(repositoryId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> deleteRepository(String repositoryId) {
-        return null;
+        repositoryService.deleteRepository(repositoryId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
