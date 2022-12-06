@@ -19,7 +19,7 @@ import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
  * @created : 29/11/2022 - 15:24
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
-@RequestMapping("${app.application-context}/public/api/v1/folders")
+@RequestMapping("    ")
 public interface FolderController {
 
     @PostMapping("/{folder-id}")
