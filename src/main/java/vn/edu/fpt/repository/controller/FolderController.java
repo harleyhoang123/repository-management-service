@@ -19,7 +19,7 @@ import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
  * @created : 29/11/2022 - 15:24
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
-@RequestMapping("    ")
+@RequestMapping("${app.application-context}/public/api/v1/folders")
 public interface FolderController {
 
     @PostMapping("/{folder-id}")
@@ -32,7 +32,7 @@ public interface FolderController {
     ResponseEntity<GeneralResponse<Object>> updateFolder(@PathVariable(name = "folder-id") String folderId, @RequestBody UpdateFolderRequest request);
 
     @GetMapping("/{repository-id}/folders")
-    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable("repository-id") String repositoryId);
+    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable(name = "repository-id") String repositoryId);
 
     @GetMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<GetFolderDetailResponse>> getFolderDetail(@PathVariable(name = "folder-id") String folderId);
