@@ -1,9 +1,11 @@
 package vn.edu.fpt.repository.service;
 
-import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
+import vn.edu.fpt.repository.dto.request.file.AddFileToFolderRequest;
 import vn.edu.fpt.repository.dto.request.file.UpdateFileRequest;
-import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
+import vn.edu.fpt.repository.dto.response.file.AddFileToFolderResponse;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author : Hoang Lam
@@ -14,11 +16,13 @@ import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
  **/
 public interface FileService {
 
-    CreateFileResponse addFileToFolder(String folderId, CreateFileRequest request);
+    AddFileToFolderResponse addFileToFolder(String folderId, AddFileToFolderRequest request);
 
     void updateFile(String fileId, UpdateFileRequest request);
 
     void deleteFile(String fileId);
 
     GetFileDetailResponse getFileDetail(String fileId);
+
+    void downloadFile(String fileId, HttpServletResponse response);
 }

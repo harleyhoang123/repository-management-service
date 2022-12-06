@@ -7,16 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
 import vn.edu.fpt.repository.dto.common.UserInfoResponse;
 import vn.edu.fpt.repository.dto.request.folder.CreateFolderRequest;
-import vn.edu.fpt.repository.dto.request.folder.GetFolderRequest;
 import vn.edu.fpt.repository.dto.request.folder.UpdateFolderRequest;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 import vn.edu.fpt.repository.dto.response.folder.CreateFolderResponse;
@@ -70,7 +66,7 @@ public class FolderServiceImpl implements FolderService {
         Folder folder = Folder.builder()
                 .folderName(request.getFolderName())
                 .description(request.getDescription())
-                .fullPath(path)
+                .folderKey(path)
                 .build();
 
         try {
@@ -108,12 +104,12 @@ public class FolderServiceImpl implements FolderService {
         Folder folderParent = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not exist"));
 
-        String path = String.format("%s%s", folderParent.getFullPath(), DataUtils.getFolderKey(request.getFolderName()));
+        String path = String.format("%s%s", folderParent.getFolderKey(), DataUtils.getFolderKey(request.getFolderName()));
 
         Folder folder = Folder.builder()
                 .folderName(request.getFolderName())
                 .description(request.getDescription())
-                .fullPath(path)
+                .folderKey(path)
                 .build();
 
         try {
@@ -205,6 +201,8 @@ public class FolderServiceImpl implements FolderService {
         return GetFolderResponse.builder()
                 .folderId(folder.getFolderId())
                 .folderName(folder.getFolderName())
+                .description(folder.getDescription())
+                .lastModifiedDate(folder.getLastModifiedDate())
                 .build();
     }
 
@@ -213,6 +211,8 @@ public class FolderServiceImpl implements FolderService {
                 .fileId(file.getFileId())
                 .fileName(file.getFileName())
                 .description(file.getDescription())
+                .size(file.getSize())
+                .type(file.getType())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(file.getCreatedBy())
                         .userInfo(userInfoService.getUserInfo(file.getCreatedBy()))

@@ -6,6 +6,7 @@ import lombok.*;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -20,10 +21,11 @@ import java.util.List;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"folderId","folderName"})
+@JsonPropertyOrder({"folderId","folderName", "description", "lastModifiedDate"})
 public class GetFolderResponse implements Serializable{
     private static final long serialVersionUID = -7918752112103180312L;
     private String folderId;
     private String folderName;
     private String description;
+    private LocalDateTime lastModifiedDate;
 }

@@ -32,14 +32,8 @@ public class _Repository extends Auditor {
     @Id
     @Field(name = "_id", targetType = FieldType.OBJECT_ID)
     private String repositoryId;
-    @Field(name = "project_id")
-    private String projectId;
     @Field(name = "original_path")
     private String originalPath;
-    @Field(name = "repository_name")
-    private String repositoryName;
-    @Field(name = "description")
-    private String description;
     @Field(name = "folders")
     @DBRef(lazy = true)
     @Builder.Default

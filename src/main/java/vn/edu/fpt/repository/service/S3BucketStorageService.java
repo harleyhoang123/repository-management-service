@@ -1,6 +1,8 @@
 package vn.edu.fpt.repository.service;
 
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.repository.dto.common.CreateFileRequest;
+import vn.edu.fpt.repository.entity._File;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -16,7 +18,9 @@ public interface S3BucketStorageService {
 
     String uploadFile(MultipartFile file);
 
-    void downloadFile(String fileKey, HttpServletResponse response);
+    void uploadFile(CreateFileRequest request, String fileKey);
+
+    void downloadFile(_File file, HttpServletResponse response);
 
     File downloadFile(String fileKey);
 

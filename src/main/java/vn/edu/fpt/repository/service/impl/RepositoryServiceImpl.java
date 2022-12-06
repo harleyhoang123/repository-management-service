@@ -63,17 +63,6 @@ public class RepositoryServiceImpl implements RepositoryService {
     @Transactional
     public CreateRepositoryResponse createRepository(CreateRepositoryRequest request) {
         String path = String.format("%s", DataUtils.getFolderKey(request.getRepositoryName()));
-        _Repository repository = _Repository.builder()
-                .projectId(request.getProjectId())
-                .repositoryName(request.getRepositoryName())
-                .originalPath(path)
-                .description(request.getDescription())
-                .build();
-        try {
-            repository = repositoryRepository.save(repository);
-        }catch (Exception ex){
-            throw new BusinessException("Can't save new repository to database: "+ ex.getMessage());
-        }
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(0);
@@ -84,6 +73,16 @@ public class RepositoryServiceImpl implements RepositoryService {
         }catch (Exception ex){
             throw new BusinessException("Can't create repository in aws: "+ ex.getMessage());
         }
+
+        _Repository repository = _Repository.builder()
+                .repositoryId(request.getProjectId())
+                .originalPath(path)
+                .build();
+        try {
+            repository = repositoryRepository.save(repository);
+        }catch (Exception ex){
+            throw new BusinessException("Can't save new repository to database: "+ ex.getMessage());
+        }
         return CreateRepositoryResponse.builder()
                 .repositoryId(repository.getRepositoryId())
                 .build();
@@ -93,18 +92,6 @@ public class RepositoryServiceImpl implements RepositoryService {
     public void updateRepository(String repositoryId, UpdateRepositoryRequest request) {
         _Repository repository = repositoryRepository.findById(repositoryId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository id not found"));
-
-        if (Objects.nonNull(request.getRepositoryName())) {
-            if (repositoryRepository.findByRepositoryName(request.getRepositoryName()).isPresent()) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository name already in database");
-            }
-            log.info("Update repository name: {}", request.getRepositoryName());
-            repository.setRepositoryName(request.getRepositoryName());
-        }
-        if (Objects.nonNull(request.getDescription())) {
-            log.info("Update repository description: {}", request.getDescription());
-            repository.setDescription(request.getDescription());
-        }
 
         try {
             repositoryRepository.save(repository);
@@ -159,8 +146,6 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         return GetRepositoryResponse.builder()
                 .repositoryId(repository.getRepositoryId())
-                .repositoryName(repository.getRepositoryName())
-                .description(repository.getDescription())
                 .build();
     }
 

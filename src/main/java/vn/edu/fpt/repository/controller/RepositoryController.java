@@ -36,7 +36,7 @@ public interface RepositoryController {
     @DeleteMapping("/{repository-id}")
     ResponseEntity<GeneralResponse<Object>> deleteRepository(@PathVariable(name = "repository-id") String repositoryId);
 
-    @GetMapping("/all")
+    @GetMapping
     ResponseEntity<GeneralResponse<PageableResponse<GetRepositoryResponse>>> getRepository(
             @RequestParam(name = "repository-id", required = false) String repositoryId,
             @RequestParam(name = "repository-name", required = false) String repositoryName,

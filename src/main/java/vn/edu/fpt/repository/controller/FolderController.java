@@ -1,14 +1,13 @@
 package vn.edu.fpt.repository.controller;
 
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.repository.dto.common.GeneralResponse;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
-import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
+import vn.edu.fpt.repository.dto.request.file.AddFileToFolderRequest;
 import vn.edu.fpt.repository.dto.request.folder.CreateFolderRequest;
 import vn.edu.fpt.repository.dto.request.folder.UpdateFolderRequest;
-import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
+import vn.edu.fpt.repository.dto.response.file.AddFileToFolderResponse;
 import vn.edu.fpt.repository.dto.response.folder.CreateFolderResponse;
 import vn.edu.fpt.repository.dto.response.folder.GetFolderDetailResponse;
 import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
@@ -26,8 +25,8 @@ public interface FolderController {
     @PostMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<CreateFolderResponse>> createFolderInFolder(@PathVariable(name = "folder-id") String folderId, @RequestBody CreateFolderRequest request);
 
-    @PostMapping(value = "/{folder-id}/file", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    ResponseEntity<GeneralResponse<CreateFileResponse>> addFileToFolder(@PathVariable(name = "folder-id") String folderId, @ModelAttribute CreateFileRequest request);
+    @PostMapping(value = "/{folder-id}/file")
+    ResponseEntity<GeneralResponse<AddFileToFolderResponse>> addFileToFolder(@PathVariable(name = "folder-id") String folderId, @RequestBody AddFileToFolderRequest request);
 
     @PutMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<Object>> updateFolder(@PathVariable(name = "folder-id") String folderId, @RequestBody UpdateFolderRequest request);
@@ -35,7 +34,7 @@ public interface FolderController {
     @GetMapping("/{repository-id}/folders")
     ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable("repository-id") String repositoryId);
 
-    @GetMapping("/{folder-id}/detail")
+    @GetMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<GetFolderDetailResponse>> getFolderDetail(@PathVariable(name = "folder-id") String folderId);
 
     @DeleteMapping("/{folder-id}")

@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.repository.dto.common.CreateFileRequest;
 
 import java.io.Serializable;
 
@@ -19,9 +20,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 @Builder
-public class CreateFileRequest implements Serializable {
+public class AddFileToFolderRequest implements Serializable {
 
     private static final long serialVersionUID = 6122689413136882722L;
-    private MultipartFile file;
+    private CreateFileRequest file;
     private String description;
 }

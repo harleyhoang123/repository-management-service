@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import vn.edu.fpt.repository.dto.common.ApprovalRequest;
 import vn.edu.fpt.repository.dto.common.AuditableRequest;
 import vn.edu.fpt.repository.dto.common.PageableRequest;
 
@@ -21,13 +20,6 @@ import java.util.Objects;
  **/
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BaseMongoRepository {
-
-    public static void addCriteriaWithApproval(Query query, ApprovalRequest request) {
-        if (Objects.nonNull(request.getApprovedBy())) {
-            query.addCriteria(Criteria.where("approved_by").regex(request.getApprovedBy()));
-            query.addCriteria(Criteria.where("approved_date").gte(request.getApprovedDateFrom()).lte(request.getApprovedDateTo()));
-        }
-    }
 
     public static void addCriteriaWithPageable(Query query, PageableRequest request) {
         PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize());

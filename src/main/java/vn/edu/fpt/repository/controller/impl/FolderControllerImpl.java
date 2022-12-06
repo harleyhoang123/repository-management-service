@@ -8,22 +8,16 @@ import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.controller.FolderController;
 import vn.edu.fpt.repository.dto.common.GeneralResponse;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
-import vn.edu.fpt.repository.dto.common.SortableRequest;
-import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
+import vn.edu.fpt.repository.dto.request.file.AddFileToFolderRequest;
 import vn.edu.fpt.repository.dto.request.folder.CreateFolderRequest;
-import vn.edu.fpt.repository.dto.request.folder.GetFolderRequest;
 import vn.edu.fpt.repository.dto.request.folder.UpdateFolderRequest;
-import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
+import vn.edu.fpt.repository.dto.response.file.AddFileToFolderResponse;
 import vn.edu.fpt.repository.dto.response.folder.CreateFolderResponse;
 import vn.edu.fpt.repository.dto.response.folder.GetFolderDetailResponse;
 import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
 import vn.edu.fpt.repository.factory.ResponseFactory;
 import vn.edu.fpt.repository.service.FileService;
 import vn.edu.fpt.repository.service.FolderService;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author : Hoang Lam
@@ -47,7 +41,7 @@ public class FolderControllerImpl implements FolderController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<CreateFileResponse>> addFileToFolder(String folderId, CreateFileRequest request) {
+    public ResponseEntity<GeneralResponse<AddFileToFolderResponse>> addFileToFolder(String folderId, AddFileToFolderRequest request) {
         return responseFactory.response(fileService.addFileToFolder(folderId, request), ResponseStatusEnum.CREATED);
     }
 
