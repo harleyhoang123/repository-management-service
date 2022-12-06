@@ -32,7 +32,7 @@ public interface FolderController {
     ResponseEntity<GeneralResponse<Object>> updateFolder(@PathVariable(name = "folder-id") String folderId, @RequestBody UpdateFolderRequest request);
 
     @GetMapping("/{repository-id}/folders")
-    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable("repository-id") String repositoryId);
+    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable(name = "repository-id") String repositoryId);
 
     @GetMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<GetFolderDetailResponse>> getFolderDetail(@PathVariable(name = "folder-id") String folderId);
