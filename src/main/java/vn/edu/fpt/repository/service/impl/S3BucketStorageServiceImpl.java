@@ -124,6 +124,7 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
                     response.getOutputStream().write(buffer, 0, len);
                 }
                 response.flushBuffer();
+                log.info("Download file success");
             }
         } catch (Exception ex) {
             throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't download file from AWS S3: " + ex.getMessage());
