@@ -1,6 +1,7 @@
 package vn.edu.fpt.repository.config.kafka.consumer;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.repository.service.RepositoryService;
 
@@ -18,6 +19,7 @@ public class CreateRepositoryConsumer extends Consumer{
     private final RepositoryService repositoryService;
 
     @Override
+    @KafkaListener(id = "createRepositoryConsumer", topics = "flab.repository.create-repository", groupId = "flab.repository")
     protected void listen(String value, String topic, String key) {
         super.listen(value, topic, key);
         repositoryService.createRepository(value);
