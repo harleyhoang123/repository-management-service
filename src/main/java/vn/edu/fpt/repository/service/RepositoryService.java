@@ -19,6 +19,7 @@ import vn.edu.fpt.repository.entity._Repository;
 public interface RepositoryService {
 
     CreateRepositoryResponse createRepository(CreateRepositoryRequest request);
+    void createRepository(String event);
 
     void updateRepository(String repositoryId, UpdateRepositoryRequest request);
 

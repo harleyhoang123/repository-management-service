@@ -62,7 +62,7 @@ public class FolderServiceImpl implements FolderService {
         _Repository repository = repositoryRepository.findById(repositoryId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID not exist"));
 
-        String path = String.format("%s%s", DataUtils.getFolderKey(repository.getOriginalPath()), DataUtils.getFolderKey(request.getFolderName()));
+        String path = String.format("%s%s", repository.getOriginalPath(), DataUtils.getFolderKey(request.getFolderName()));
 
         Folder folder = Folder.builder()
                 .folderName(request.getFolderName())

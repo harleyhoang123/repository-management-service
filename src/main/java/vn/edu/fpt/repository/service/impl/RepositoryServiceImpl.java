@@ -3,6 +3,8 @@ package vn.edu.fpt.repository.service.impl;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +14,11 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.repository.constant.RepositoryRoleEnum;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
 import vn.edu.fpt.repository.dto.common.UserInfoResponse;
+import vn.edu.fpt.repository.dto.event.CreateRepositoryEvent;
 import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
@@ -25,10 +29,12 @@ import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryDetailResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryResponse;
 import vn.edu.fpt.repository.entity.Folder;
+import vn.edu.fpt.repository.entity.MemberInfo;
 import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.entity._Repository;
 import vn.edu.fpt.repository.exception.BusinessException;
 import vn.edu.fpt.repository.repository.BaseMongoRepository;
+import vn.edu.fpt.repository.repository.MemberInfoRepository;
 import vn.edu.fpt.repository.repository._RepositoryRepository;
 import vn.edu.fpt.repository.service.RepositoryService;
 import vn.edu.fpt.repository.service.UserInfoService;
@@ -38,6 +44,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +61,8 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     private final _RepositoryRepository repositoryRepository;
     private final AmazonS3 amazonS3;
+    private final ObjectMapper objectMapper;
+    private final MemberInfoRepository memberInfoRepository;
     private final MongoTemplate mongoTemplate;
     private final UserInfoService userInfoService;
     @Value("${application.bucket}")
@@ -86,6 +95,47 @@ public class RepositoryServiceImpl implements RepositoryService {
         return CreateRepositoryResponse.builder()
                 .repositoryId(repository.getRepositoryId())
                 .build();
+    }
+
+    @Override
+    public void createRepository(String event) {
+        try {
+            CreateRepositoryEvent createRepositoryEvent = objectMapper.readValue(event, CreateRepositoryEvent.class);
+            String path = String.format("%s", DataUtils.getFolderKey(UUID.randomUUID().toString()));
+
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(0);
+            InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, path, emptyContent, metadata);
+
+            try {
+                amazonS3.putObject(putObjectRequest);
+            }catch (Exception ex){
+                throw new BusinessException("Can't create repository in aws: "+ ex.getMessage());
+            }
+
+            _Repository repository = _Repository.builder()
+                    .repositoryId(createRepositoryEvent.getProjectId())
+                    .originalPath(path)
+                    .build();
+            MemberInfo memberInfo = MemberInfo.builder()
+                    .accountId(createRepositoryEvent.getAccountId())
+                    .role(RepositoryRoleEnum.OWNER)
+                    .build();
+            try {
+                memberInfo = memberInfoRepository.save(memberInfo);
+            }catch (Exception ex){
+                throw new BusinessException("Can't save member info to database: "+ ex.getMessage());
+            }
+            repository.setMembers(List.of(memberInfo));
+            try {
+                repository = repositoryRepository.save(repository);
+            }catch (Exception ex){
+                throw new BusinessException("Can't save new repository to database: "+ ex.getMessage());
+            }
+        } catch (JsonProcessingException e) {
+            throw new BusinessException("Can't create Repository using event: "+ e.getMessage());
+        }
     }
 
     @Override
