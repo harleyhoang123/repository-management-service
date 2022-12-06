@@ -7,6 +7,8 @@ import vn.edu.fpt.repository.dto.common.PageableResponse;
 import vn.edu.fpt.repository.dto.request.file.UpdateFileRequest;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -24,4 +26,7 @@ public interface FileController {
 
     @GetMapping("/{file-id}/detail")
     ResponseEntity<GeneralResponse<GetFileDetailResponse>> getFileDetail(@PathVariable(name = "file-id") String fileId);
+
+    @GetMapping("/{file-id}")
+    void downloadFileByFileId(@PathVariable(name = "file-id") String fileId, HttpServletResponse response);
 }

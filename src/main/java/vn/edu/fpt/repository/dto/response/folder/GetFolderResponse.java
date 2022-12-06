@@ -3,11 +3,10 @@ package vn.edu.fpt.repository.dto.response.folder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import vn.edu.fpt.repository.dto.common.AuditableResponse;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -20,12 +19,13 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@SuperBuilder
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"folderId","folderName"})
-public class GetFolderResponse extends AuditableResponse {
+@JsonPropertyOrder({"folderId","folderName", "description", "lastModifiedDate"})
+public class GetFolderResponse implements Serializable{
     private static final long serialVersionUID = -7918752112103180312L;
     private String folderId;
     private String folderName;
     private String description;
+    private LocalDateTime lastModifiedDate;
 }

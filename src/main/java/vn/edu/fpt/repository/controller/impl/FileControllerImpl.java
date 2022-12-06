@@ -13,6 +13,8 @@ import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 import vn.edu.fpt.repository.factory.ResponseFactory;
 import vn.edu.fpt.repository.service.FileService;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -43,5 +45,10 @@ public class FileControllerImpl implements FileController {
     @Override
     public ResponseEntity<GeneralResponse<GetFileDetailResponse>> getFileDetail(String fileId) {
         return  responseFactory.response(fileService.getFileDetail(fileId), ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public void downloadFileByFileId(String fileId, HttpServletResponse response) {
+        fileService.downloadFile(fileId, response);
     }
 }

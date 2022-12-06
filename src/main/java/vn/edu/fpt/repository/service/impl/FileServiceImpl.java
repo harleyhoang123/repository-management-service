@@ -1,21 +1,15 @@
 package vn.edu.fpt.repository.service.impl;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
+import vn.edu.fpt.repository.dto.common.CreateFileRequest;
 import vn.edu.fpt.repository.dto.common.UserInfoResponse;
-import vn.edu.fpt.repository.dto.request.file.CreateFileRequest;
+import vn.edu.fpt.repository.dto.request.file.AddFileToFolderRequest;
 import vn.edu.fpt.repository.dto.request.file.UpdateFileRequest;
-import vn.edu.fpt.repository.dto.response.file.CreateFileResponse;
+import vn.edu.fpt.repository.dto.response.file.AddFileToFolderResponse;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 import vn.edu.fpt.repository.entity.Folder;
 import vn.edu.fpt.repository.entity._File;
@@ -23,13 +17,14 @@ import vn.edu.fpt.repository.exception.BusinessException;
 import vn.edu.fpt.repository.repository.FileRepository;
 import vn.edu.fpt.repository.repository.FolderRepository;
 import vn.edu.fpt.repository.service.FileService;
+import vn.edu.fpt.repository.service.S3BucketStorageService;
 import vn.edu.fpt.repository.service.UserInfoService;
+import vn.edu.fpt.repository.utils.FileUtils;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * @author : Hoang Lam
@@ -42,69 +37,48 @@ import java.util.Objects;
 @Slf4j
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
-
-    private final AmazonS3 amazonS3;
     private final FileRepository fileRepository;
     private final FolderRepository folderRepository;
     private final UserInfoService userInfoService;
-    @Value("${application.bucket}")
-    private String bucketName;
+    private final S3BucketStorageService s3BucketStorageService;
 
     @Override
     @Transactional
-    public CreateFileResponse addFileToFolder(String folderId, CreateFileRequest request) {
+    public AddFileToFolderResponse addFileToFolder(String folderId, AddFileToFolderRequest request) {
+        CreateFileRequest fileRequest = request.getFile();
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not exist"));
-
-        String fileName = request.getFile().getOriginalFilename();
-        String path = String.format("%s%s", folder.getFullPath(), fileName);
-
-        File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + fileName);
-        try (OutputStream os = Files.newOutputStream(Path.of(convFile.getPath()))) {
-            os.write(request.getFile().getBytes());
-
-            _File file = _File.builder()
-                    .fileName(fileName)
-                    .description(request.getDescription())
-                    .fullPath(path)
-                    .build();
-            try {
-                file = fileRepository.save(file);
-            } catch (Exception ex) {
-                throw new BusinessException("Can't addFileToFolder Cong Son buon");
-            }
-
-            List<_File> currentFile = folder.getFiles();
-            currentFile.add(file);
-            folder.setFiles(currentFile);
-            try {
-                folderRepository.save(folder);
-            } catch (Exception ex) {
-                throw new BusinessException("");
-            }
-
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(convFile.length());
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, path, convFile);
-            putObjectRequest.setMetadata(metadata);
-            try {
-                amazonS3.putObject(putObjectRequest);
-            }catch (Exception ex){
-                throw new BusinessException("Can't create folder in aws: "+ ex.getMessage());
-            }
-
-            return CreateFileResponse.builder()
-                    .fileId(file.getFileId())
-                    .build();
+        String fileKey = folder.getFolderKey() + UUID.randomUUID();
+        s3BucketStorageService.uploadFile(fileRequest, fileKey);
+        _File file = _File.builder()
+                .fileName(fileRequest.getName())
+                .description(request.getDescription())
+                .fileKey(fileKey)
+                .type(fileRequest.getName().split("\\.")[1])
+                .length(fileRequest.getSize())
+                .size(FileUtils.getFileSize(fileRequest.getSize()))
+                .mimeType(fileRequest.getMimeType())
+                .build();
+        try {
+            file = fileRepository.save(file);
+            log.info("Save file success");
         } catch (Exception ex) {
-            throw new BusinessException("");
-        } finally {
-            try {
-                Files.delete(convFile.getAbsoluteFile().toPath());
-            } catch (IOException e) {
-                throw new BusinessException("");
-            }
+            throw new BusinessException("Can't save file to database: "+ ex.getMessage());
         }
+
+        List<_File> currentFile = folder.getFiles();
+        currentFile.add(file);
+        folder.setFiles(currentFile);
+        try {
+            folderRepository.save(folder);
+            log.info("Update folder success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't update folder to database: "+ ex.getMessage());
+        }
+
+        return AddFileToFolderResponse.builder()
+                .fileId(file.getFileId())
+                .build();
     }
 
     @Override
@@ -133,43 +107,28 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFile(String folderId, String fileId) {
-        if (!ObjectId.isValid(folderId)) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID invalid");
-        }
-        if (!ObjectId.isValid(fileId)) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File ID invalid");
-        }
-        Folder folder = folderRepository.findById(folderId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not found"));
+    public void deleteFile(String fileId) {
         fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
-        List<_File> files = folder.getFiles();
-        files.removeIf(m->m.getFileId().equals(fileId));
-        folder.setFiles(files);
         try {
             fileRepository.deleteById(fileId);
             log.info("Delete file: {} success", fileId);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete file by ID: " + ex.getMessage());
         }
-
-        try {
-            folderRepository.save(folder);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't save folder: " + ex.getMessage());
-        }
     }
 
     @Override
     public GetFileDetailResponse getFileDetail(String fileId) {
-        _File file= fileRepository.findById(fileId)
+        _File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
 
         return GetFileDetailResponse.builder()
                 .fileId(file.getFileId())
                 .fileName(file.getFileName())
                 .description(file.getDescription())
+                .size(file.getSize())
+                .type(file.getType())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(file.getCreatedBy())
                         .userInfo(userInfoService.getUserInfo(file.getCreatedBy()))
@@ -181,5 +140,13 @@ public class FileServiceImpl implements FileService {
                         .build())
                 .lastModifiedDate(file.getLastModifiedDate())
                 .build();
+    }
+
+    @Override
+    public void downloadFile(String fileId, HttpServletResponse response) {
+        _File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File ID not exist"));
+        s3BucketStorageService.downloadFile(file, response);
+
     }
 }
