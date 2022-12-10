@@ -11,26 +11,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.repository.constant.RepositoryRoleEnum;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
-import vn.edu.fpt.repository.dto.common.UserInfoResponse;
-import vn.edu.fpt.repository.dto.event.CreateRepositoryEvent;
+import vn.edu.fpt.repository.dto.event.GenerateProjectAppEvent;
 import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
-import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
-import vn.edu.fpt.repository.dto.response.folder.GetFolderDetailResponse;
-import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
 import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
-import vn.edu.fpt.repository.dto.response.repository.GetRepositoryDetailResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryResponse;
-import vn.edu.fpt.repository.entity.Folder;
 import vn.edu.fpt.repository.entity.MemberInfo;
-import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.entity._Repository;
 import vn.edu.fpt.repository.exception.BusinessException;
 import vn.edu.fpt.repository.repository.BaseMongoRepository;
@@ -100,7 +92,7 @@ public class RepositoryServiceImpl implements RepositoryService {
     @Override
     public void createRepository(String event) {
         try {
-            CreateRepositoryEvent createRepositoryEvent = objectMapper.readValue(event, CreateRepositoryEvent.class);
+            GenerateProjectAppEvent generateProjectAppEvent = objectMapper.readValue(event, GenerateProjectAppEvent.class);
             String path = String.format("%s", DataUtils.getFolderKey(UUID.randomUUID().toString()));
 
             ObjectMetadata metadata = new ObjectMetadata();
@@ -115,11 +107,11 @@ public class RepositoryServiceImpl implements RepositoryService {
             }
 
             _Repository repository = _Repository.builder()
-                    .repositoryId(createRepositoryEvent.getProjectId())
+                    .repositoryId(generateProjectAppEvent.getProjectId())
                     .originalPath(path)
                     .build();
             MemberInfo memberInfo = MemberInfo.builder()
-                    .accountId(createRepositoryEvent.getAccountId())
+                    .accountId(generateProjectAppEvent.getAccountId())
                     .role(RepositoryRoleEnum.OWNER)
                     .build();
             try {

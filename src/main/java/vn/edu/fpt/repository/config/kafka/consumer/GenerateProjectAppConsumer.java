@@ -14,12 +14,12 @@ import vn.edu.fpt.repository.service.RepositoryService;
  **/
 @Service
 @RequiredArgsConstructor
-public class CreateRepositoryConsumer extends Consumer{
+public class GenerateProjectAppConsumer extends Consumer{
 
     private final RepositoryService repositoryService;
 
     @Override
-    @KafkaListener(id = "createRepositoryConsumer", topics = "flab.repository.create-repository", groupId = "flab.repository")
+    @KafkaListener(id = "generateProjectAppInRepositoryConsumer", topics = "flab.project.generate-app", groupId = "repository_group")
     protected void listen(String value, String topic, String key) {
         super.listen(value, topic, key);
         repositoryService.createRepository(value);
