@@ -107,14 +107,28 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFile(String fileId) {
-        fileRepository.findById(fileId)
+    public void deleteFile(String folderId, String fileId) {
+        Folder folder = folderRepository.findById(folderId)
+                        .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not exist"));
+        _File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
+        List<_File> files = folder.getFiles();
+        if (files.stream().noneMatch(m->m.getFileId().equals(fileId))) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File not exist in Folder");
+        }
+        files.removeIf(m->m.getFileId().equals(fileId));
+        folder.setFiles(files);
         try {
             fileRepository.deleteById(fileId);
             log.info("Delete file: {} success", fileId);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete file by ID: " + ex.getMessage());
+        }
+        try {
+            folderRepository.save(folder);
+            log.info("Delete file in file list in folder success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete file in file list in folder: " + ex.getMessage());
         }
     }
 

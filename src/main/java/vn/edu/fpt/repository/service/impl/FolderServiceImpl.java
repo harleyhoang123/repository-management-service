@@ -71,8 +71,8 @@ public class FolderServiceImpl implements FolderService {
 
         try {
             folder = folderRepository.save(folder);
-        }catch (Exception ex){
-            throw new BusinessException("Can't save folder to database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save folder to database: " + ex.getMessage());
         }
 
         List<Folder> currentFolder = repository.getFolders();
@@ -80,8 +80,8 @@ public class FolderServiceImpl implements FolderService {
         repository.setFolders(currentFolder);
         try {
             repositoryRepository.save(repository);
-        }catch (Exception ex){
-            throw new BusinessException("Can't save repository to database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save repository to database: " + ex.getMessage());
         }
 
         ObjectMetadata metadata = new ObjectMetadata();
@@ -90,8 +90,8 @@ public class FolderServiceImpl implements FolderService {
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, path, emptyContent, metadata);
         try {
             amazonS3.putObject(putObjectRequest);
-        }catch (Exception ex){
-            throw new BusinessException("Can't create folder in aws: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create folder in aws: " + ex.getMessage());
         }
 
         return CreateFolderResponse.builder()
@@ -114,8 +114,8 @@ public class FolderServiceImpl implements FolderService {
 
         try {
             folder = folderRepository.save(folder);
-        }catch (Exception ex){
-            throw new BusinessException("Can't save folder to database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save folder to database: " + ex.getMessage());
         }
 
         List<Folder> currentFolder = folderParent.getFolders();
@@ -125,8 +125,8 @@ public class FolderServiceImpl implements FolderService {
         folderParent.setFolders(currentFolder);
         try {
             folderRepository.save(folderParent);
-        }catch (Exception ex){
-            throw new BusinessException("Can't update folder parent in database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't update folder parent in database: " + ex.getMessage());
         }
 
         ObjectMetadata metadata = new ObjectMetadata();
@@ -135,8 +135,8 @@ public class FolderServiceImpl implements FolderService {
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, path, emptyContent, metadata);
         try {
             amazonS3.putObject(putObjectRequest);
-        }catch (Exception ex){
-            throw new BusinessException("Can't create folder in aws: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create folder in aws: " + ex.getMessage());
         }
 
         return CreateFolderResponse.builder()
@@ -178,7 +178,7 @@ public class FolderServiceImpl implements FolderService {
 
     @Override
     public GetFolderDetailResponse getFolderDetail(String folderId) {
-        Folder folder= folderRepository.findById(folderId)
+        Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "folder ID not found"));
         List<Folder> folders = folder.getFolders();
         List<_File> files = folder.getFiles();
@@ -198,6 +198,9 @@ public class FolderServiceImpl implements FolderService {
     }
 
     public GetFolderResponse convertToFolderResponse(Folder folder) {
+        if (folder == null) {
+            return null;
+        }
         return GetFolderResponse.builder()
                 .folderId(folder.getFolderId())
                 .folderName(folder.getFolderName())
@@ -207,6 +210,10 @@ public class FolderServiceImpl implements FolderService {
     }
 
     public GetFileDetailResponse convertToFileResponse(_File file) {
+        if (file == null) {
+            return null;
+        }
+
         return GetFileDetailResponse.builder()
                 .fileId(file.getFileId())
                 .fileName(file.getFileName())
@@ -224,6 +231,7 @@ public class FolderServiceImpl implements FolderService {
                         .build())
                 .lastModifiedDate(file.getLastModifiedDate())
                 .build();
+
     }
 
 }
