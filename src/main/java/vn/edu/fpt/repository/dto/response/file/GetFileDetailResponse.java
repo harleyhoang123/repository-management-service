@@ -25,11 +25,12 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @SuperBuilder
-@JsonPropertyOrder({"fileId", "fileName", "description", "type", "size", "lastModifiedDate"})
+@JsonPropertyOrder({"fileId", "fileName", "publicURL","description", "type", "size"})
 public class GetFileDetailResponse extends AuditableResponse {
     private static final long serialVersionUID = 4108794241636458273L;
     private String fileId;
     private String fileName;
+    private String publicURL;
     private String description;
     private String size;
     private String type;

@@ -2,6 +2,7 @@ package vn.edu.fpt.repository.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
@@ -107,9 +108,18 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFile(String fileId) {
-        fileRepository.findById(fileId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
+    public void deleteFile(String folderId, String fileId) {
+        if(ObjectId.isValid(folderId) || ObjectId.isValid(fileId)){
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id or File Id invalid");
+        }
+        Folder folder = folderRepository.findById(folderId)
+                        .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id not exist: "+ folderId));
+
+        List<_File> files = folder.getFiles();
+        files.stream().filter(v -> v.getFileId().equals(fileId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File Id not exist: "+ fileId));
+
         try {
             fileRepository.deleteById(fileId);
             log.info("Delete file: {} success", fileId);
