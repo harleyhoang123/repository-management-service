@@ -47,6 +47,8 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
     @Value("${application.bucket}")
     private String bucketName;
 
+    @Value("${application.cloudfront.repository}")
+    private String cloudfront;
     @Override
     public String uploadFile(MultipartFile file) {
         String fileName = file.getOriginalFilename();
@@ -163,5 +165,8 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
 
     }
 
-
+    @Override
+    public String getPublicURL(String fileKey) {
+        return cloudfront+ fileKey;
+    }
 }

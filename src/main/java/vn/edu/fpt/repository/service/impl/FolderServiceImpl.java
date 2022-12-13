@@ -26,6 +26,7 @@ import vn.edu.fpt.repository.exception.BusinessException;
 import vn.edu.fpt.repository.repository.FolderRepository;
 import vn.edu.fpt.repository.repository._RepositoryRepository;
 import vn.edu.fpt.repository.service.FolderService;
+import vn.edu.fpt.repository.service.S3BucketStorageService;
 import vn.edu.fpt.repository.service.UserInfoService;
 import vn.edu.fpt.repository.utils.DataUtils;
 
@@ -50,6 +51,7 @@ public class FolderServiceImpl implements FolderService {
     private final AmazonS3 amazonS3;
     private final FolderRepository folderRepository;
     private final _RepositoryRepository repositoryRepository;
+    private final S3BucketStorageService s3BucketStorageService;
 
     private final MongoTemplate mongoTemplate;
     private final UserInfoService userInfoService;
@@ -265,6 +267,7 @@ public class FolderServiceImpl implements FolderService {
                 .fileId(file.getFileId())
                 .fileName(file.getFileName())
                 .description(file.getDescription())
+                .publicURL(s3BucketStorageService.getPublicURL(file.getFileKey()))
                 .size(file.getSize())
                 .type(file.getType())
                 .createdBy(UserInfoResponse.builder()
