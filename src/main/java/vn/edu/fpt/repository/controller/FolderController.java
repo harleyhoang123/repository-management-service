@@ -37,6 +37,9 @@ public interface FolderController {
     @GetMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<GetFolderDetailResponse>> getFolderDetail(@PathVariable(name = "folder-id") String folderId);
 
-    @DeleteMapping("/{folder-id}")
-    ResponseEntity<GeneralResponse<Object>> deleteFolder(@PathVariable(name = "folder-id") String folderId);
+    @DeleteMapping("/{folder-id}/{sub-folder-id}")
+    ResponseEntity<GeneralResponse<Object>> deleteFolderInFolder(@PathVariable(name = "folder-id") String folderId, @PathVariable("sub-folder-id") String subFolderId);
+
+    @DeleteMapping("{folder-id}/files/{file-id}")
+    ResponseEntity<GeneralResponse<Object>> deleteFileInFolder(@PathVariable("folder-id") String folderId, @PathVariable("file-id") String fileId);
 }

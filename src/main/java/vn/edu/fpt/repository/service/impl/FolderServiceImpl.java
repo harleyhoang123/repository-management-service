@@ -22,6 +22,7 @@ import vn.edu.fpt.repository.entity.Folder;
 import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.entity._Repository;
 import vn.edu.fpt.repository.exception.BusinessException;
+import vn.edu.fpt.repository.repository.FileRepository;
 import vn.edu.fpt.repository.repository.FolderRepository;
 import vn.edu.fpt.repository.repository._RepositoryRepository;
 import vn.edu.fpt.repository.service.FolderService;
@@ -52,7 +53,7 @@ public class FolderServiceImpl implements FolderService {
     private final _RepositoryRepository repositoryRepository;
     private final S3BucketStorageService s3BucketStorageService;
 
-    private final MongoTemplate mongoTemplate;
+    private final FileRepository fileRepository;
     private final UserInfoService userInfoService;
     @Value("${application.bucket}")
     private String bucketName;
@@ -199,7 +200,65 @@ public class FolderServiceImpl implements FolderService {
         return new PageableResponse<>(folderResponses);
     }
 
-    public GetFolderResponse convertToFolderResponse(Folder folder) {
+    @Override
+    public void deleteFolderInRepository(String repositoryId, String folderId) {
+        _Repository repository = repositoryRepository.findById(repositoryId)
+                        .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository Id not exist when delete folder in repository: "+ repositoryId));
+        List<Folder> folders = repository.getFolders();
+        Folder folder = folders.stream()
+                .filter(v -> v.getFolderId().equals(folderId))
+                .findAny()
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id not exist in repository"));
+        folder.getFolders().forEach(v -> this.deleteFolderInFolder(folderId, v.getFolderId()));
+        folder.getFiles().forEach(v -> this.deleteFileByFileId(v.getFileId()));
+
+        if(folders.removeIf(v -> v.getFolderId().equals(folderId))){
+            try {
+                repository.setFolders(folders);
+                repositoryRepository.save(repository);
+
+                folderRepository.deleteById(folderId);
+
+                log.info("Delete folder: {} success", folderId);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't delete folder by Id: " + ex.getMessage());
+            }
+        }else{
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id: "+folderId+" not exist in repository: "+ repositoryId);
+        }
+
+    }
+
+    private void deleteFileByFileId(String fileId){
+        try {
+            fileRepository.deleteById(fileId);
+        }catch (Exception ex){
+            throw new BusinessException("Can't delete file by id: "+ ex.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteFolderInFolder(String folderId, String subFolderId) {
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id not exist: "+ folderId));
+        List<Folder> folders = folder.getFolders();
+        if(folders.removeIf(v -> v.getFolderId().equals(subFolderId))){
+            try {
+                folder.setFolders(folders);
+                folderRepository.save(folder);
+            }catch (Exception ex){
+                throw new BusinessException("Can't update folder after delete sub folder in database: "+ ex.getMessage());
+            }try {
+                folderRepository.deleteById(subFolderId);
+            }catch (Exception ex){
+                throw new BusinessException("Can't delete folder: "+ ex.getMessage());
+            }
+        }else{
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id: "+subFolderId+" not exist in folder: "+ folderId);
+        }
+    }
+
+    private GetFolderResponse convertToFolderResponse(Folder folder) {
         if (folder == null) {
             return null;
         }
@@ -211,7 +270,7 @@ public class FolderServiceImpl implements FolderService {
                 .build();
     }
 
-    public GetFileDetailResponse convertToFileResponse(_File file) {
+    private GetFileDetailResponse convertToFileResponse(_File file) {
         if (file == null) {
             return null;
         }

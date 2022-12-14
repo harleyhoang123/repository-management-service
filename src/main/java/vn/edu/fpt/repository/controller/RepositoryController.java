@@ -54,4 +54,7 @@ public interface RepositoryController {
             @RequestParam(name = "size", required = false) Integer size
     );
 
+    @DeleteMapping("/{repository-id}/{folder-id}")
+    ResponseEntity<GeneralResponse<Object>> deleteFolderInRepository(@PathVariable("repository-id") String repositoryId ,@PathVariable("folder-id") String folderId);
+
 }
