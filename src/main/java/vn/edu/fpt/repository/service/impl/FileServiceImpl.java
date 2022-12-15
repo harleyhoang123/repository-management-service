@@ -52,7 +52,7 @@ public class FileServiceImpl implements FileService {
         String fileKey = folder.getFolderKey() + UUID.randomUUID();
         s3BucketStorageService.uploadFile(fileRequest, fileKey);
         _File file = _File.builder()
-                .fileName(fileRequest.getName())
+                .fileName(request.getFileName())
                 .description(request.getDescription())
                 .fileKey(fileKey)
                 .type(fileRequest.getName().split("\\.")[1])
@@ -109,7 +109,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void deleteFile(String folderId, String fileId) {
-        if(ObjectId.isValid(folderId) || ObjectId.isValid(fileId)){
+        if(!ObjectId.isValid(folderId) && !ObjectId.isValid(fileId)){
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id or File Id invalid");
         }
         Folder folder = folderRepository.findById(folderId)
