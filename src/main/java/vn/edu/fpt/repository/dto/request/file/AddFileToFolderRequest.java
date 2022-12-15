@@ -23,6 +23,7 @@ import java.io.Serializable;
 public class AddFileToFolderRequest implements Serializable {
 
     private static final long serialVersionUID = 6122689413136882722L;
-    private CreateFileRequest file;
+    private String fileName;
     private String description;
+    private CreateFileRequest file;
 }
