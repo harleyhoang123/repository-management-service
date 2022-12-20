@@ -13,6 +13,8 @@ import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 import vn.edu.fpt.repository.factory.ResponseFactory;
 import vn.edu.fpt.repository.service.FileService;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -35,13 +37,18 @@ public class FileControllerImpl implements FileController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> deleteFile(String fileId) {
-        fileService.deleteFile(fileId);
+    public ResponseEntity<GeneralResponse<Object>> deleteFile(String folderId, String fileId) {
+        fileService.deleteFile(folderId, fileId);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
     public ResponseEntity<GeneralResponse<GetFileDetailResponse>> getFileDetail(String fileId) {
         return  responseFactory.response(fileService.getFileDetail(fileId), ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public void downloadFileByFileId(String fileId, HttpServletResponse response) {
+        fileService.downloadFile(fileId, response);
     }
 }

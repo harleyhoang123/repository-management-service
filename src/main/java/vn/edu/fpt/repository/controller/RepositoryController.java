@@ -36,7 +36,7 @@ public interface RepositoryController {
     @DeleteMapping("/{repository-id}")
     ResponseEntity<GeneralResponse<Object>> deleteRepository(@PathVariable(name = "repository-id") String repositoryId);
 
-    @GetMapping("/all")
+    @GetMapping
     ResponseEntity<GeneralResponse<PageableResponse<GetRepositoryResponse>>> getRepository(
             @RequestParam(name = "repository-id", required = false) String repositoryId,
             @RequestParam(name = "repository-name", required = false) String repositoryName,
@@ -53,5 +53,8 @@ public interface RepositoryController {
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", required = false) Integer size
     );
+
+    @DeleteMapping("/{repository-id}/{folder-id}")
+    ResponseEntity<GeneralResponse<Object>> deleteFolderInRepository(@PathVariable("repository-id") String repositoryId ,@PathVariable("folder-id") String folderId);
 
 }

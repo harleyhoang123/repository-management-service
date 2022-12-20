@@ -106,4 +106,10 @@ public class RepositoryControllerImpl implements RepositoryController {
 
         return responseFactory.response(repositoryService.getRepository(request));
     }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> deleteFolderInRepository(String repositoryId, String folderId) {
+        folderService.deleteFolderInRepository(repositoryId, folderId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
 }

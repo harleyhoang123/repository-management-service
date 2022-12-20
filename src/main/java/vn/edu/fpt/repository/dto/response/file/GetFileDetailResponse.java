@@ -9,6 +9,7 @@ import vn.edu.fpt.repository.dto.common.AuditableResponse;
 import vn.edu.fpt.repository.utils.RequestDataUtils;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * @author : Hoang Lam
@@ -20,24 +21,17 @@ import java.io.Serializable;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 @Setter
+@ToString
 @SuperBuilder
-@JsonPropertyOrder({"fileId", "fileName", "description"})
-public class GetFileDetailResponse extends AuditableResponse implements Serializable {
+@JsonPropertyOrder({"fileId", "fileName", "publicURL","description", "type", "size"})
+public class GetFileDetailResponse extends AuditableResponse {
     private static final long serialVersionUID = 4108794241636458273L;
     private String fileId;
     private String fileName;
+    private String publicURL;
     private String description;
-
-    public ObjectId getFileId() {
-        return RequestDataUtils.convertObjectId(fileId);
-    }
-
-    public String getFileName() {
-        return RequestDataUtils.convertSearchableData(fileName);
-    }
-
-    public String getDescription() {
-        return RequestDataUtils.convertSearchableData(description);
-    }
+    private String size;
+    private String type;
 }

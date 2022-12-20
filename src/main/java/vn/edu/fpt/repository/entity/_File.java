@@ -30,8 +30,16 @@ public class _File extends Auditor {
     private String fileId;
     @Field(name = "file_name")
     private String fileName;
-    @Field(name = "full_path")
-    private String fullPath;
+    @Field(name = "file_key")
+    private String fileKey;
     @Field(name = "description")
     private String description;
+    @Field(name = "size")
+    private String size;
+    @Field(name = "type")
+    private String type;
+    @Field(name = "length")
+    private Long length;
+    @Field(name = "mime_type")
+    private String mimeType;
 }
