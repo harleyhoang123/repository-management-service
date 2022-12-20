@@ -68,8 +68,8 @@ public class FolderControllerImpl implements FolderController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> deleteFolder(String folderId) {
-        folderService.deleteFolder(folderId);
+    public ResponseEntity<GeneralResponse<Object>> deleteFolderInFolder(String parentFolderId, String folderId) {
+        folderService.deleteFolderInFolder(parentFolderId, folderId);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
 
     }

@@ -18,7 +18,7 @@ public interface FileService {
 
     void updateFile(String fileId, UpdateFileRequest request);
 
-    void deleteFile(String fileId);
+    void deleteFile(String folderId, String fileId);
 
     GetFileDetailResponse getFileDetail(String fileId);
 }

@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -168,14 +169,60 @@ public class FolderServiceImpl implements FolderService {
     }
 
     @Override
-    public void deleteFolder(String folderId) {
+    public void deleteFolderInRepository(String repositoryId, String folderId) {
+        if (!ObjectId.isValid(repositoryId)) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID invalid");
+        }
+        if (!ObjectId.isValid(folderId)) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID invalid");
+        }
+        _Repository repository = repositoryRepository.findById(repositoryId)
+                        .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID not exist"));
+        List<Folder> folders = repository.getFolders();
         folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not found"));
+        folders.removeIf(m->m.getFolderId().equals(folderId));
+        repository.setFolders(folders);
         try {
             folderRepository.deleteById(folderId);
             log.info("Delete folder: {} success", folderId);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete folder by ID: " + ex.getMessage());
+        }
+        try {
+            repositoryRepository.save(repository);
+            log.info("Save repository success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save repository: " + ex.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteFolderInFolder(String parentFolderId, String folderId) {
+        if (!ObjectId.isValid(parentFolderId)) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Parent Folder ID invalid");
+        }
+        if (!ObjectId.isValid(folderId)) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID invalid");
+        }
+        Folder parentFolder = folderRepository.findById(parentFolderId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Parent Folder ID not found"));
+        List<Folder> folders = parentFolder.getFolders();
+        folderRepository.findById(folderId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not found"));
+        folders.removeIf(m->m.getFolderId().equals(folderId));
+        parentFolder.setFolders(folders);
+        try {
+            folderRepository.deleteById(folderId);
+            log.info("Delete folder: {} success", folderId);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete folder by ID: " + ex.getMessage());
+        }
+        try {
+            folderRepository.save(parentFolder);
+            log.info("Save parent folder success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save parent folder: " + ex.getMessage());
         }
     }
 
@@ -205,6 +252,8 @@ public class FolderServiceImpl implements FolderService {
         return GetFolderResponse.builder()
                 .folderId(folder.getFolderId())
                 .folderName(folder.getFolderName())
+                .description(folder.getDescription())
+                .lastModifiedDate(folder.getLastModifiedDate())
                 .build();
     }
 

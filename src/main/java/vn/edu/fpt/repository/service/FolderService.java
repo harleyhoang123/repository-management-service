@@ -24,7 +24,9 @@ public interface FolderService {
 
     void updateFolder(String folderId, UpdateFolderRequest request);
 
-    void deleteFolder(String folderId);
+    void deleteFolderInRepository(String repositoryId, String folderId);
+
+    void deleteFolderInFolder(String parentFolderId, String folderId);
 
     GetFolderDetailResponse getFolderDetail(String folderId);
 

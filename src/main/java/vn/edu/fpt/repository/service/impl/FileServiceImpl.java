@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -132,14 +133,31 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFile(String fileId) {
+    public void deleteFile(String folderId, String fileId) {
+        if (!ObjectId.isValid(folderId)) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID invalid");
+        }
+        if (!ObjectId.isValid(fileId)) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File ID invalid");
+        }
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not found"));
         fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
+        List<_File> files = folder.getFiles();
+        files.removeIf(m->m.getFileId().equals(fileId));
+        folder.setFiles(files);
         try {
             fileRepository.deleteById(fileId);
             log.info("Delete file: {} success", fileId);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete file by ID: " + ex.getMessage());
+        }
+
+        try {
+            folderRepository.save(folder);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save folder: " + ex.getMessage());
         }
     }
 
