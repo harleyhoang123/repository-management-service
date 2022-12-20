@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -80,9 +81,7 @@ public class SecurityConfiguration {
         return (web) -> web
                 .ignoring()
                 .antMatchers("/actuator/health")
-                .antMatchers("/public/api/v1/emails/test")
-                .antMatchers("/private/api/v1/telegrams/test")
-                .antMatchers("/private/api/v1/sms/test");
+                .antMatchers(HttpMethod.GET,"/"+applicationContext+"/public/api/v1/files/*");
     }
     @Bean
     CorsConfigurationSource corsConfigurationSource() {

@@ -1,27 +1,27 @@
-package vn.edu.fpt.repository.dto.request.file;
+package vn.edu.fpt.repository.dto.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
  * @project : Charity System
- * @created : 29/11/2022 - 15:55
+ * @created : 03/11/2022 - 09:45
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
-public class CreateFileRequest implements Serializable {
+public class SendTelegramEvent implements Serializable {
 
-    private static final long serialVersionUID = 6122689413136882722L;
-    private MultipartFile file;
-    private String description;
+    private static final long serialVersionUID = 4766850908265391948L;
+    private String templateId;
+    private Map<String, String> params;
 }

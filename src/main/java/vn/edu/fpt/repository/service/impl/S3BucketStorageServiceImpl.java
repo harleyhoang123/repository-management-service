@@ -10,19 +10,24 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
+import vn.edu.fpt.repository.dto.common.CreateFileRequest;
+import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.exception.BusinessException;
 import vn.edu.fpt.repository.service.S3BucketStorageService;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.UUID;
 
 /**
@@ -42,6 +47,8 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
     @Value("${application.bucket}")
     private String bucketName;
 
+    @Value("${application.cloudfront.repository}")
+    private String cloudfront;
     @Override
     public String uploadFile(MultipartFile file) {
         String fileName = file.getOriginalFilename();
@@ -72,6 +79,24 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
         }
     }
 
+    @Override
+    public void uploadFile(CreateFileRequest request, String fileKey) {
+        String base64 = request.getBase64().split(",")[1];
+        byte[] decodedFile = Base64.getDecoder().decode(base64.getBytes(StandardCharsets.UTF_8));
+        InputStream is = new ByteArrayInputStream(decodedFile);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(request.getMimeType());
+        metadata.setContentLength(request.getSize());
+
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, fileKey, is, metadata);
+        putObjectRequest.setCannedAcl(CannedAccessControlList.PublicRead);
+        try {
+            amazonS3.putObject(putObjectRequest);
+        }catch (Exception ex){
+            throw new BusinessException("Can't push object to s3 bucket: "+ ex.getMessage());
+        }
+    }
+
     private String getContentType(String fileName) {
         String fileType = fileName.split("\\.")[1];
         switch ((fileType)) {
@@ -89,15 +114,19 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
     }
 
     @Override
-    public void downloadFile(String fileKey, HttpServletResponse response) {
+    public void downloadFile(_File file, HttpServletResponse response) {
+        response.setContentType(file.getMimeType());
+        response.setContentLengthLong(file.getLength());
         try {
-            S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, fileKey));
+            S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, file.getFileKey()));
             try (InputStream is = s3Object.getObjectContent()) {
                 int len;
                 byte[] buffer = new byte[4096];
                 while ((len = is.read(buffer, 0, buffer.length)) != -1) {
                     response.getOutputStream().write(buffer, 0, len);
                 }
+                response.flushBuffer();
+                log.info("Download file success");
             }
         } catch (Exception ex) {
             throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't download file from AWS S3: " + ex.getMessage());
@@ -136,5 +165,8 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
 
     }
 
-
+    @Override
+    public String getPublicURL(String fileKey) {
+        return cloudfront+ fileKey;
+    }
 }

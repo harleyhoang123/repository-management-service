@@ -7,16 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.repository.constant.ResponseStatusEnum;
 import vn.edu.fpt.repository.dto.common.PageableResponse;
 import vn.edu.fpt.repository.dto.common.UserInfoResponse;
 import vn.edu.fpt.repository.dto.request.folder.CreateFolderRequest;
-import vn.edu.fpt.repository.dto.request.folder.GetFolderRequest;
 import vn.edu.fpt.repository.dto.request.folder.UpdateFolderRequest;
 import vn.edu.fpt.repository.dto.response.file.GetFileDetailResponse;
 import vn.edu.fpt.repository.dto.response.folder.CreateFolderResponse;
@@ -26,9 +22,11 @@ import vn.edu.fpt.repository.entity.Folder;
 import vn.edu.fpt.repository.entity._File;
 import vn.edu.fpt.repository.entity._Repository;
 import vn.edu.fpt.repository.exception.BusinessException;
+import vn.edu.fpt.repository.repository.FileRepository;
 import vn.edu.fpt.repository.repository.FolderRepository;
 import vn.edu.fpt.repository.repository._RepositoryRepository;
 import vn.edu.fpt.repository.service.FolderService;
+import vn.edu.fpt.repository.service.S3BucketStorageService;
 import vn.edu.fpt.repository.service.UserInfoService;
 import vn.edu.fpt.repository.utils.DataUtils;
 
@@ -53,8 +51,9 @@ public class FolderServiceImpl implements FolderService {
     private final AmazonS3 amazonS3;
     private final FolderRepository folderRepository;
     private final _RepositoryRepository repositoryRepository;
+    private final S3BucketStorageService s3BucketStorageService;
 
-    private final MongoTemplate mongoTemplate;
+    private final FileRepository fileRepository;
     private final UserInfoService userInfoService;
     @Value("${application.bucket}")
     private String bucketName;
@@ -65,18 +64,18 @@ public class FolderServiceImpl implements FolderService {
         _Repository repository = repositoryRepository.findById(repositoryId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID not exist"));
 
-        String path = String.format("%s%s", DataUtils.getFolderKey(repository.getOriginalPath()), DataUtils.getFolderKey(request.getFolderName()));
+        String path = String.format("%s%s", repository.getOriginalPath(), DataUtils.getFolderKey(request.getFolderName()));
 
         Folder folder = Folder.builder()
                 .folderName(request.getFolderName())
                 .description(request.getDescription())
-                .fullPath(path)
+                .folderKey(path)
                 .build();
 
         try {
             folder = folderRepository.save(folder);
-        }catch (Exception ex){
-            throw new BusinessException("Can't save folder to database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save folder to database: " + ex.getMessage());
         }
 
         List<Folder> currentFolder = repository.getFolders();
@@ -84,8 +83,8 @@ public class FolderServiceImpl implements FolderService {
         repository.setFolders(currentFolder);
         try {
             repositoryRepository.save(repository);
-        }catch (Exception ex){
-            throw new BusinessException("Can't save repository to database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save repository to database: " + ex.getMessage());
         }
 
         ObjectMetadata metadata = new ObjectMetadata();
@@ -94,8 +93,8 @@ public class FolderServiceImpl implements FolderService {
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, path, emptyContent, metadata);
         try {
             amazonS3.putObject(putObjectRequest);
-        }catch (Exception ex){
-            throw new BusinessException("Can't create folder in aws: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create folder in aws: " + ex.getMessage());
         }
 
         return CreateFolderResponse.builder()
@@ -108,18 +107,18 @@ public class FolderServiceImpl implements FolderService {
         Folder folderParent = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not exist"));
 
-        String path = String.format("%s%s", folderParent.getFullPath(), DataUtils.getFolderKey(request.getFolderName()));
+        String path = String.format("%s%s", folderParent.getFolderKey(), DataUtils.getFolderKey(request.getFolderName()));
 
         Folder folder = Folder.builder()
                 .folderName(request.getFolderName())
                 .description(request.getDescription())
-                .fullPath(path)
+                .folderKey(path)
                 .build();
 
         try {
             folder = folderRepository.save(folder);
-        }catch (Exception ex){
-            throw new BusinessException("Can't save folder to database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save folder to database: " + ex.getMessage());
         }
 
         List<Folder> currentFolder = folderParent.getFolders();
@@ -129,8 +128,8 @@ public class FolderServiceImpl implements FolderService {
         folderParent.setFolders(currentFolder);
         try {
             folderRepository.save(folderParent);
-        }catch (Exception ex){
-            throw new BusinessException("Can't update folder parent in database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't update folder parent in database: " + ex.getMessage());
         }
 
         ObjectMetadata metadata = new ObjectMetadata();
@@ -139,8 +138,8 @@ public class FolderServiceImpl implements FolderService {
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, path, emptyContent, metadata);
         try {
             amazonS3.putObject(putObjectRequest);
-        }catch (Exception ex){
-            throw new BusinessException("Can't create folder in aws: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create folder in aws: " + ex.getMessage());
         }
 
         return CreateFolderResponse.builder()
@@ -182,7 +181,7 @@ public class FolderServiceImpl implements FolderService {
 
     @Override
     public GetFolderDetailResponse getFolderDetail(String folderId) {
-        Folder folder= folderRepository.findById(folderId)
+        Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "folder ID not found"));
         List<Folder> folders = folder.getFolders();
         List<_File> files = folder.getFiles();
@@ -201,18 +200,88 @@ public class FolderServiceImpl implements FolderService {
         return new PageableResponse<>(folderResponses);
     }
 
-    public GetFolderResponse convertToFolderResponse(Folder folder) {
+    @Override
+    public void deleteFolderInRepository(String repositoryId, String folderId) {
+        _Repository repository = repositoryRepository.findById(repositoryId)
+                        .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository Id not exist when delete folder in repository: "+ repositoryId));
+        List<Folder> folders = repository.getFolders();
+        Folder folder = folders.stream()
+                .filter(v -> v.getFolderId().equals(folderId))
+                .findAny()
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id not exist in repository"));
+        folder.getFolders().forEach(v -> this.deleteFolderInFolder(folderId, v.getFolderId()));
+        folder.getFiles().forEach(v -> this.deleteFileByFileId(v.getFileId()));
+
+        if(folders.removeIf(v -> v.getFolderId().equals(folderId))){
+            try {
+                repository.setFolders(folders);
+                repositoryRepository.save(repository);
+
+                folderRepository.deleteById(folderId);
+
+                log.info("Delete folder: {} success", folderId);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't delete folder by Id: " + ex.getMessage());
+            }
+        }else{
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id: "+folderId+" not exist in repository: "+ repositoryId);
+        }
+
+    }
+
+    private void deleteFileByFileId(String fileId){
+        try {
+            fileRepository.deleteById(fileId);
+        }catch (Exception ex){
+            throw new BusinessException("Can't delete file by id: "+ ex.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteFolderInFolder(String folderId, String subFolderId) {
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id not exist: "+ folderId));
+        List<Folder> folders = folder.getFolders();
+        if(folders.removeIf(v -> v.getFolderId().equals(subFolderId))){
+            try {
+                folder.setFolders(folders);
+                folderRepository.save(folder);
+            }catch (Exception ex){
+                throw new BusinessException("Can't update folder after delete sub folder in database: "+ ex.getMessage());
+            }try {
+                folderRepository.deleteById(subFolderId);
+            }catch (Exception ex){
+                throw new BusinessException("Can't delete folder: "+ ex.getMessage());
+            }
+        }else{
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id: "+subFolderId+" not exist in folder: "+ folderId);
+        }
+    }
+
+    private GetFolderResponse convertToFolderResponse(Folder folder) {
+        if (folder == null) {
+            return null;
+        }
         return GetFolderResponse.builder()
                 .folderId(folder.getFolderId())
                 .folderName(folder.getFolderName())
+                .description(folder.getDescription())
+                .lastModifiedDate(folder.getLastModifiedDate())
                 .build();
     }
 
-    public GetFileDetailResponse convertToFileResponse(_File file) {
+    private GetFileDetailResponse convertToFileResponse(_File file) {
+        if (file == null) {
+            return null;
+        }
+
         return GetFileDetailResponse.builder()
                 .fileId(file.getFileId())
                 .fileName(file.getFileName())
                 .description(file.getDescription())
+                .publicURL(s3BucketStorageService.getPublicURL(file.getFileKey()))
+                .size(file.getSize())
+                .type(file.getType())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(file.getCreatedBy())
                         .userInfo(userInfoService.getUserInfo(file.getCreatedBy()))
@@ -224,6 +293,7 @@ public class FolderServiceImpl implements FolderService {
                         .build())
                 .lastModifiedDate(file.getLastModifiedDate())
                 .build();
+
     }
 
 }

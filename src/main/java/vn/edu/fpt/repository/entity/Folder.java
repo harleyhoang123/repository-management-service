@@ -34,8 +34,8 @@ public class Folder extends Auditor {
     private String folderId;
     @Field(name = "folder_name")
     private String folderName;
-    @Field(name = "full_path")
-    private String fullPath;
+    @Field(name = "folder_key")
+    private String folderKey;
     @Field(name = "description")
     private String description;
     @Field(name = "folders")
