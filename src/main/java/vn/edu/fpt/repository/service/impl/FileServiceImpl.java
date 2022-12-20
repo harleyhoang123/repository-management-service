@@ -110,12 +110,10 @@ public class FileServiceImpl implements FileService {
     public void deleteFile(String folderId, String fileId) {
         Folder folder = folderRepository.findById(folderId)
                         .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not exist"));
-        _File file = fileRepository.findById(fileId)
+        fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "file ID not found"));
         List<_File> files = folder.getFiles();
-        if (files.stream().noneMatch(m->m.getFileId().equals(fileId))) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File not exist in Folder");
-        }
+
         files.removeIf(m->m.getFileId().equals(fileId));
         folder.setFiles(files);
         try {
