@@ -168,65 +168,6 @@ public class FolderServiceImpl implements FolderService {
     }
 
     @Override
-    public void deleteFolderInRepository(String repositoryId, String folderId) {
-        if (!ObjectId.isValid(repositoryId)) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID invalid");
-        }
-        if (!ObjectId.isValid(folderId)) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID invalid");
-        }
-        _Repository repository = repositoryRepository.findById(repositoryId)
-                        .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Repository ID not exist"));
-        List<Folder> folders = repository.getFolders();
-        folderRepository.findById(folderId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not found"));
-        folders.removeIf(m->m.getFolderId().equals(folderId));
-        repository.setFolders(folders);
-        try {
-            folderRepository.deleteById(folderId);
-            log.info("Delete folder: {} success", folderId);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't delete folder by ID: " + ex.getMessage());
-        }
-        try {
-            repositoryRepository.save(repository);
-            log.info("Save repository success");
-        } catch (Exception ex) {
-            throw new BusinessException("Can't save repository: " + ex.getMessage());
-        }
-    }
-
-    @Override
-    public void deleteFolderInFolder(String parentFolderId, String folderId) {
-        if (!ObjectId.isValid(parentFolderId)) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Parent Folder ID invalid");
-        }
-        if (!ObjectId.isValid(folderId)) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID invalid");
-        }
-        Folder parentFolder = folderRepository.findById(parentFolderId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Parent Folder ID not found"));
-        List<Folder> folders = parentFolder.getFolders();
-        folderRepository.findById(folderId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not found"));
-        folders.removeIf(m->m.getFolderId().equals(folderId));
-        parentFolder.setFolders(folders);
-        try {
-            folderRepository.deleteById(folderId);
-            log.info("Delete folder: {} success", folderId);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't delete folder by ID: " + ex.getMessage());
-        }
-        try {
-            folderRepository.save(parentFolder);
-            log.info("Save parent folder success");
-        } catch (Exception ex) {
-            throw new BusinessException("Can't save parent folder: " + ex.getMessage());
-        }
-    }
-
-
-    @Override
     public GetFolderDetailResponse getFolderDetail(String folderId) {
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "folder ID not found"));

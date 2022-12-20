@@ -31,8 +31,4 @@ public interface FolderService {
     GetFolderDetailResponse getFolderDetail(String folderId);
 
     PageableResponse<GetFolderResponse> getFolderByRepositoryId(String repositoryId);
-
-    void deleteFolderInRepository(String repositoryId, String folderId);
-
-    void deleteFolderInFolder(String folderId, String subFolderId);
 }
