@@ -9,6 +9,7 @@ import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
 import vn.edu.fpt.repository.dto.response.folder.CreateFolderResponse;
+import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
 import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryDetailResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryResponse;
@@ -57,4 +58,6 @@ public interface RepositoryController {
     @DeleteMapping("/{repository-id}/{folder-id}")
     ResponseEntity<GeneralResponse<Object>> deleteFolderInRepository(@PathVariable("repository-id") String repositoryId ,@PathVariable("folder-id") String folderId);
 
+    @GetMapping("/{repository-id}/folders")
+    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable(name = "repository-id") String repositoryId);
 }

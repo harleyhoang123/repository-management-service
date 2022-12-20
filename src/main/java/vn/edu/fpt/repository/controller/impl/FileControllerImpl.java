@@ -36,11 +36,7 @@ public class FileControllerImpl implements FileController {
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> deleteFile(String folderId, String fileId) {
-        fileService.deleteFile(folderId, fileId);
-        return responseFactory.response(ResponseStatusEnum.SUCCESS);
-    }
+
 
     @Override
     public ResponseEntity<GeneralResponse<GetFileDetailResponse>> getFileDetail(String fileId) {

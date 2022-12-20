@@ -51,10 +51,7 @@ public class FolderControllerImpl implements FolderController {
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
-    @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(String repositoryId) {
-        return responseFactory.response(folderService.getFolderByRepositoryId(repositoryId), ResponseStatusEnum.SUCCESS);
-    }
+
 
     @Override
     public ResponseEntity<GeneralResponse<GetFolderDetailResponse>> getFolderDetail(String folderId) {
@@ -66,5 +63,11 @@ public class FolderControllerImpl implements FolderController {
         folderService.deleteFolderInFolder(parentFolderId, folderId);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
 
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> deleteFile(String folderId, String fileId) {
+        fileService.deleteFile(folderId, fileId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 }

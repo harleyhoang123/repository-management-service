@@ -31,12 +31,12 @@ public interface FolderController {
     @PutMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<Object>> updateFolder(@PathVariable(name = "folder-id") String folderId, @RequestBody UpdateFolderRequest request);
 
-    @GetMapping("/{repository-id}/folders")
-    ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(@PathVariable(name = "repository-id") String repositoryId);
-
     @GetMapping("/{folder-id}")
     ResponseEntity<GeneralResponse<GetFolderDetailResponse>> getFolderDetail(@PathVariable(name = "folder-id") String folderId);
 
     @DeleteMapping("/{parent-folder-id}/{folder-id}")
     ResponseEntity<GeneralResponse<Object>> deleteFolderInFolder(@PathVariable(name = "parent-folder-id") String parentFolderId, @PathVariable(name = "folder-id") String folderId);
+
+    @DeleteMapping("/{folder-id}/{file-id}")
+    ResponseEntity<GeneralResponse<Object>> deleteFile(@PathVariable(name = "folder-id") String folderId, @PathVariable(name = "file-id") String fileId);
 }

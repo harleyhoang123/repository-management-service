@@ -14,6 +14,7 @@ import vn.edu.fpt.repository.dto.request.repository.CreateRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.GetRepositoryRequest;
 import vn.edu.fpt.repository.dto.request.repository.UpdateRepositoryRequest;
 import vn.edu.fpt.repository.dto.response.folder.CreateFolderResponse;
+import vn.edu.fpt.repository.dto.response.folder.GetFolderResponse;
 import vn.edu.fpt.repository.dto.response.repository.CreateRepositoryResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryDetailResponse;
 import vn.edu.fpt.repository.dto.response.repository.GetRepositoryResponse;
@@ -111,5 +112,10 @@ public class RepositoryControllerImpl implements RepositoryController {
                 .build();
 
         return responseFactory.response(repositoryService.getRepository(request));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetFolderResponse>>> getFolderByRepository(String repositoryId) {
+        return responseFactory.response(folderService.getFolderByRepositoryId(repositoryId), ResponseStatusEnum.SUCCESS);
     }
 }
