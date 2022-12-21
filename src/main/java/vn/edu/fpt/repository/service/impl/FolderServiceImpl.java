@@ -229,21 +229,23 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public void deleteFolderInFolder(String folderId, String subFolderId) {
         Folder folder = folderRepository.findById(folderId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id not exist: "+ folderId));
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id not exist"));
         List<Folder> folders = folder.getFolders();
-        if(folders.removeIf(v -> v.getFolderId().equals(subFolderId))){
-            try {
-                folder.setFolders(folders);
-                folderRepository.save(folder);
-            }catch (Exception ex){
-                throw new BusinessException("Can't update folder after delete sub folder in database: "+ ex.getMessage());
-            }try {
-                folderRepository.deleteById(subFolderId);
-            }catch (Exception ex){
-                throw new BusinessException("Can't delete folder: "+ ex.getMessage());
-            }
-        }else{
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder Id: "+subFolderId+" not exist in folder: "+ folderId);
+        folderRepository.findById(subFolderId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Sub folder Id not exist"));
+        folders.removeIf(v -> v.getFolderId().equals(subFolderId));
+        folder.setFolders(folders);
+        try {
+            folder.setFolders(folders);
+            folderRepository.save(folder);
+        }catch (Exception ex){
+            throw new BusinessException("Can't update folder after delete sub folder in database: "+ ex.getMessage());
+        }
+
+        try {
+            folderRepository.deleteById(subFolderId);
+        }catch (Exception ex){
+            throw new BusinessException("Can't delete folder: "+ ex.getMessage());
         }
     }
 
