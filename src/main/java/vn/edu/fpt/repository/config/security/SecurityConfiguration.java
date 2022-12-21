@@ -80,7 +80,7 @@ public class SecurityConfiguration {
     public WebSecurityCustomizer webSecurityCustomizer(){
         return (web) -> web
                 .ignoring()
-                .antMatchers("/actuator/health")
+                .antMatchers("/actuator/**")
                 .antMatchers(HttpMethod.GET,"/"+applicationContext+"/public/api/v1/files/*");
     }
     @Bean
