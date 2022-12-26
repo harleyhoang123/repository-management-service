@@ -46,15 +46,16 @@ public class FileServiceImpl implements FileService {
     @Transactional
     public AddFileToFolderResponse addFileToFolder(String folderId, AddFileToFolderRequest request) {
         CreateFileRequest fileRequest = request.getFile();
+        String[] split = fileRequest.getName().split("\\.");
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not exist"));
         String fileKey = folder.getFolderKey() + UUID.randomUUID();
         s3BucketStorageService.uploadFile(fileRequest, fileKey);
         _File file = _File.builder()
-                .fileName(fileRequest.getName())
+                .fileName(request.getFileName())
                 .description(request.getDescription())
                 .fileKey(fileKey)
-                .type(fileRequest.getName().split("\\.")[1])
+                .type(split[split.length-1])
                 .length(fileRequest.getSize())
                 .size(FileUtils.getFileSize(fileRequest.getSize()))
                 .mimeType(fileRequest.getMimeType())
