@@ -85,14 +85,16 @@ public class FileServiceImpl implements FileService {
     public void updateFile(String fileId, UpdateFileRequest request) {
         _File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File id not found"));
-
-        if (Objects.nonNull(request.getFileName())) {
-            if (fileRepository.findByFileName(request.getFileName()).isPresent()) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File name already in database");
+        if (file.getFileName().equals(request.getFileName())) {
+            if (Objects.nonNull(request.getFileName())) {
+                if (fileRepository.findByFileName(request.getFileName()).isPresent()) {
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File name already in database");
+                }
+                log.info("Update file name: {}", request.getFileName());
+                file.setFileName(request.getFileName());
             }
-            log.info("Update file name: {}", request.getFileName());
-            file.setFileName(request.getFileName());
         }
+
         if (Objects.nonNull(request.getDescription())) {
             log.info("Update file description: {}", request.getDescription());
             file.setDescription(request.getDescription());

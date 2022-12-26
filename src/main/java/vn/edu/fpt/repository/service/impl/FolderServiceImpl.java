@@ -153,12 +153,18 @@ public class FolderServiceImpl implements FolderService {
     public void updateFolder(String folderId, UpdateFolderRequest request) {
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder id not found"));
-        if (Objects.nonNull(request.getFolderName())) {
-            if (folderRepository.findByFolderName(request.getFolderName()).isPresent()) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder name already in database");
+        if (!folder.getFolderName().equals(request.getFolderName())) {
+            if (Objects.nonNull(request.getFolderName())) {
+                if (folderRepository.findByFolderName(request.getFolderName()).isPresent()) {
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder name already in database");
+                }
+                log.info("Update folder name: {}", request.getFolderName());
+                folder.setFolderName(request.getFolderName());
             }
-            log.info("Update folder name: {}", request.getFolderName());
-            folder.setFolderName(request.getFolderName());
+        }
+
+        if (Objects.nonNull(request.getDescription())) {
+            folder.setDescription(request.getDescription());
         }
         try {
             folderRepository.save(folder);
