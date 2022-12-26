@@ -46,15 +46,16 @@ public class FileServiceImpl implements FileService {
     @Transactional
     public AddFileToFolderResponse addFileToFolder(String folderId, AddFileToFolderRequest request) {
         CreateFileRequest fileRequest = request.getFile();
+        String[] split = fileRequest.getName().split("\\.");
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Folder ID not exist"));
         String fileKey = folder.getFolderKey() + UUID.randomUUID();
         s3BucketStorageService.uploadFile(fileRequest, fileKey);
         _File file = _File.builder()
-                .fileName(fileRequest.getName())
+                .fileName(request.getFileName())
                 .description(request.getDescription())
                 .fileKey(fileKey)
-                .type(fileRequest.getName().split("\\.")[1])
+                .type(split[split.length-1])
                 .length(fileRequest.getSize())
                 .size(FileUtils.getFileSize(fileRequest.getSize()))
                 .mimeType(fileRequest.getMimeType())
@@ -85,14 +86,16 @@ public class FileServiceImpl implements FileService {
     public void updateFile(String fileId, UpdateFileRequest request) {
         _File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File id not found"));
-
-        if (Objects.nonNull(request.getFileName())) {
-            if (fileRepository.findByFileName(request.getFileName()).isPresent()) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File name already in database");
+        if (file.getFileName().equals(request.getFileName())) {
+            if (Objects.nonNull(request.getFileName())) {
+                if (fileRepository.findByFileName(request.getFileName()).isPresent()) {
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "File name already in database");
+                }
+                log.info("Update file name: {}", request.getFileName());
+                file.setFileName(request.getFileName());
             }
-            log.info("Update file name: {}", request.getFileName());
-            file.setFileName(request.getFileName());
         }
+
         if (Objects.nonNull(request.getDescription())) {
             log.info("Update file description: {}", request.getDescription());
             file.setDescription(request.getDescription());
